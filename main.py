@@ -1,5 +1,6 @@
 import argparse
 import os
+from utilities import read_data
 
 parser = argparse.ArgumentParser(
                     prog = 'Linear Regression',
@@ -23,6 +24,15 @@ if __name__ == "__main__":
     assert (args.section in [1,2,5])
     
     print(f"Section: {args.section}")
-        
+    
+    print(f"Loading Data ....")
+    train_sample_names, train_features, train_scores = read_data(args.train_path, test=False)
+    val_sample_names, val_features, val_scores = read_data(args.val_path, test=False)
+    test_sample_names, test_features, test_scores = read_data(args.test_path, test=True)
+    print(f"Data Loaded .... ")
+    print(f"Train Data: {train_features.shape}")
+    print(f"Val Data: {val_features.shape}")
+    print(f"Test Data: {test_features.shape}")
+    
     
     
