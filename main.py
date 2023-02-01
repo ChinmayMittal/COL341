@@ -1,6 +1,8 @@
 import argparse
 import os
-from utilities import read_data
+import pandas as pd
+from utilities import read_data, plot_loss
+from model import LinearRegression
 
 parser = argparse.ArgumentParser(
                     prog = 'Linear Regression',
@@ -18,8 +20,8 @@ args = parser.parse_args()
 if __name__ == "__main__":
     print(f"Train Path: {args.train_path}", f"Test Path: {args.test_path}", f"Val Path: {args.val_path}", f"Outut Path: {args.out_path}", sep="\n")
     
-    if not os.path.isdir(args.out_path):
-        os.makedirs(args.out_path)
+    # if not os.path.isdir(args.out_path):
+    #     os.makedirs(args.out_path)
         
     assert (args.section in [1,2,5])
     
@@ -33,6 +35,49 @@ if __name__ == "__main__":
     print(f"Train Data: {train_features.shape}")
     print(f"Val Data: {val_features.shape}")
     print(f"Test Data: {test_features.shape}")
+    
+    ### TRAIN_SETTUP
+    train_X, train_y = train_features, train_scores
+    val_X, val_y = val_features, val_scores
+    num_train_samples, num_features = train_X.shape
+    loss = "MSE"
+    learning_rate = 0.001
+    stopping_criterion = "maxit"
+    max_iters = 100000
+
+    model = LinearRegression(loss=loss, num_features=num_features, 
+                                        learning_rate=learning_rate, 
+                                        stopping_criterion=stopping_criterion,
+                                        max_iters = max_iters)
+    
+    ### TRAINING_LOOP
+    print("Training Started ... ")
+    while(True):
+
+        model.update_weights(train_X, train_y, val_X, val_y)
+        if(model.training_finished()):
+            break
+        
+    
+    print("Training Finished ... ")
+    
+    ### LOSS CURVES
+    plot_loss(model.train_loss, model.val_loss)
+    
+    print("Inference on Test Set ... ")
+    test_pred = model.pred(test_features)
+    test_sample_names = [s_name + "," for s_name in test_sample_names]
+    test_data = {
+        "sample_names" : test_sample_names,
+        "pred" :  test_pred.tolist() 
+    }
+    test_df = pd.DataFrame(data=test_data)
+    test_df.to_csv(args.out_path, header=False, index=False, sep=" ")
+    print(test_df)
+    
+    
+
+    
     
     
     
