@@ -2,7 +2,7 @@ import argparse
 import os
 import pandas as pd
 from utilities import read_data, plot_loss
-from model import LinearRegression, ScikitLearnLR
+from model import LinearRegression, ScikitLearnLR, OneVsAll
 from sklearn.feature_selection import SelectKBest, SelectFromModel
 import sklearn.linear_model as lm
 
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
         
-    assert (args.section in [1,2,3,4,5])  ### 3 is for scikit learn implementation
+    assert (args.section in [1,2,3,4,5,8])  ### 3 is for scikit learn implementation
     
     print(f"Section: {args.section}")
     
@@ -80,6 +80,7 @@ if __name__ == "__main__":
     val_loss_decrease_threshold = 0.01 ### for "reltol"
     model = None
     if args.section == 1:
+        print("Gradient Descent Linear Regression ... ")
         loss = "MSE"
         model = LinearRegression(loss=loss, num_features=num_features, 
                                         learning_rate=learning_rate, 
@@ -87,6 +88,7 @@ if __name__ == "__main__":
                                         max_iters = max_iters,
                                         val_loss_decrease_threshold=val_loss_decrease_threshold)
     elif args.section == 2:
+        print("Ridge Regression ... ")
         loss = "ridge"
         lambda_ = 5
         model = LinearRegression(loss=loss, num_features=num_features, 
@@ -96,7 +98,13 @@ if __name__ == "__main__":
                                         val_loss_decrease_threshold=val_loss_decrease_threshold,
                                         lambda_=lambda_)
     elif args.section == 3:
+        print("Scikit Learn Linear Regression ... ")
         model = ScikitLearnLR()
+        
+    elif args.section == 8:
+        print("One vs All .... ")
+        max_iters = 3000
+        model = OneVsAll(n_classes=9, num_features=num_features, learning_rate=learning_rate, max_iters=max_iters)
         
             
     

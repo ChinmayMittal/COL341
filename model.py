@@ -77,7 +77,7 @@ class LinearRegression():
     def training_finished(self):
         
         if self.stopping_criterion == "maxit":
-            return self.num_updates >= self.max_iters
+            return self.num_updates > self.max_iters
         elif self.stopping_criterion == "reltol":
             if(len(self.val_loss) < 2):
                 return False
@@ -146,3 +146,98 @@ class ScikitLearnLR():
     def pred(self, X):
         ## X is n*d
         return self.model.predict(X)
+    
+    
+class OneVsAll():
+    
+    def __init__(self, n_classes=9, num_features = 2048, learning_rate = 0.001, max_iters=10):
+        
+        self.num_classes = n_classes
+        self.num_features = num_features
+        self.learning_rate = learning_rate
+        self.w = np.zeros((self.num_classes, self.num_features+1), dtype=np.float64) ### one weight for each class first term is bias
+        self.train_loss = []
+        self.val_loss = []
+        self.max_iters = max_iters
+        self.num_updates = 0
+        
+    
+    def add_bias_column(self, X):
+        ### add the bias column of all ones to the X (as first column)
+        ### transform it form N*d => N*d+1 
+        ones = np.ones((len(X), 1), dtype=np.float64) #### N * 1
+        one_X = np.concatenate((ones, X), axis=1)
+        return one_X    
+
+    def training_finished(self):
+        
+        return self.num_updates > self.max_iters
+    
+    def class_predict(self, X, w_class):
+        ### X is N * d+1
+        logits = np.dot(X, w_class)
+        prob = np.exp(logits) / (1 + np.exp(logits))
+        return prob
+        
+    def pred(self, X):
+        ### predicts the class
+        X = self.add_bias_column(X)
+        logits = np.matmul(X, np.transpose(self.w)) ###  N * c
+        class_pred = np.argmax(logits, axis = 1) + 1
+        return class_pred
+    
+    def loss(self, X, y):
+        
+        ### finds average loss across all classifiers
+        
+        total_loss = 0.0
+        
+        for class_idx in range(1, self.num_classes+1):
+            w_class = self.w[class_idx-1]
+            class_pred = self.class_predict(X, w_class)
+            y_class_binary = (y==class_idx).astype(np.float64)
+            class_loss =  -np.mean( y_class_binary * np.log(class_pred) + (1-y_class_binary)*np.log(1-class_pred))
+            total_loss += class_loss
+            
+        return total_loss / self.num_classes
+    
+    def custom_loss(self, X, y, loss=None):
+        
+        ### for code compatibility purposes, loss parameter value doesn't matter
+        X = self.add_bias_column(X)
+        return self.loss(X, y)
+        
+
+    def class_gradient(self, X, y_class, w_class):
+        
+        ### same form as linear regression 
+        pred = self.class_predict(X, w_class)
+        error = pred - y_class
+        error = np.reshape(error, newshape=(-1, 1))
+        grad_matrix = X * error
+        grad = np.mean(grad_matrix, axis=0)
+        return grad
+    
+    
+    def update_weights(self, train_X, train_y, val_X, val_y):
+        
+        
+        train_X = self.add_bias_column(train_X)
+        val_X = self.add_bias_column(val_X)
+        
+        if(self.num_updates == 0):
+            self.train_loss.append(self.loss(train_X, train_y))
+            self.val_loss.append(self.loss(val_X, val_y))
+        
+        ### gradient update loop for each classifier
+        for class_idx in range(1, self.num_classes+1):
+            
+            train_y_binary = (train_y == class_idx).astype(np.float64)
+            w_class = self.w[class_idx-1]
+            class_gradient = self.class_gradient(train_X, train_y_binary, w_class)
+            self.w[class_idx-1] = self.w[class_idx-1] - self.learning_rate * class_gradient
+            
+        self.num_updates += 1
+        
+        self.train_loss.append(self.loss(train_X, train_y))
+        self.val_loss.append(self.loss(val_X, val_y))          
