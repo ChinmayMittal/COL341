@@ -2,7 +2,7 @@ import argparse
 import os
 import pandas as pd
 from utilities import read_data, plot_loss
-from model import LinearRegression, ScikitLearnLR, OneVsAll
+from model import LinearRegression, ScikitLearnLR, OneVsAll, LinearClassifier
 from sklearn.feature_selection import SelectKBest, SelectFromModel
 import sklearn.linear_model as lm
 
@@ -100,7 +100,11 @@ if __name__ == "__main__":
     elif args.section == 3:
         print("Scikit Learn Linear Regression ... ")
         model = ScikitLearnLR()
-        
+    
+    elif args.section == 5:
+        print(" Linear Classification ... ")
+        max_iters = 3000
+        model = LinearClassifier(n_classes=9, num_features=num_features, learning_rate=learning_rate, max_iters=max_iters)
     elif args.section == 8:
         print("One vs All .... ")
         max_iters = 3000
@@ -115,7 +119,6 @@ if __name__ == "__main__":
         model.update_weights(train_X, train_y, val_X, val_y)
         if(model.training_finished()):
             break
-        
     print("Training Finished ... ")
     
     print(f"Training MSE: {model.custom_loss(train_X, train_y, loss='MSE')}, Val MSE: {model.custom_loss(val_X, val_y, loss='MSE')}")
@@ -123,7 +126,7 @@ if __name__ == "__main__":
     ### LOSS CURVES
     if(model.train_loss is not None):
         plot_loss(model.train_loss, model.val_loss)
-    
+        
     print("Inference on Test Set ... ")
     test_pred = model.pred(test_features)
     test_sample_names = [s_name + "," for s_name in test_sample_names]

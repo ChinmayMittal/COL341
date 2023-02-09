@@ -241,3 +241,110 @@ class OneVsAll():
         
         self.train_loss.append(self.loss(train_X, train_y))
         self.val_loss.append(self.loss(val_X, val_y))          
+
+
+class LinearClassifier():
+    
+    def __init__(self, n_classes, num_features, learning_rate=0.001, max_iters=10):
+        
+        
+        self.num_classes = n_classes
+        self.num_features = num_features
+        self.learning_rate = learning_rate
+        self.max_iters = max_iters
+        self.num_updates = 0
+        self.train_loss = []
+        self.val_loss = []
+        self.w = np.zeros((self.num_classes-1, self.num_features+1), dtype=np.float64) ### for C classes we require only C-1 weights 
+        
+    def add_bias_column(self, X):
+        ### add the bias column of all ones to the X (as first column)
+        ### transform it form N*d => N*d+1 
+        ones = np.ones((len(X), 1), dtype=np.float64) #### N * 1
+        one_X = np.concatenate((ones, X), axis=1)
+        return one_X    
+
+    def training_finished(self):
+        
+        return self.num_updates > self.max_iters
+    
+    
+    def class_prob_predict(self, X, class_idx):
+        
+        denominator = np.ones(shape=(len(X),), dtype=np.float64) ## N, 
+        
+        for i in range(1, self.num_classes): ### from 1 to C-1
+            denominator += np.exp(np.dot(X, self.w[i-1]))
+        
+        if ( class_idx == self.num_classes ) :
+            ### 1- prediction of all classes
+            numerator = np.ones(shape=(len(X,)), dtype=np.float64)
+        else:
+            numerator = np.exp(np.dot(X, self.w[class_idx-1]))
+            
+        return numerator / denominator
+    
+    def class_prob_predict_single(self, x, class_idx):
+        ## x is a single vector
+        denominator = 1.0  
+        
+        for i in range(1, self.num_classes): ### from 1 to C-1
+            denominator += np.exp(np.dot(x, self.w[i-1]))
+        
+        if ( class_idx == self.num_classes ) :
+            ### 1- prediction of all classes
+            numerator = 1.0
+        else:
+            numerator = np.exp(np.dot(x, self.w[class_idx-1]))
+            
+        return numerator / denominator
+    
+    def loss(self, X, y):
+        ### X is N*d+1 and y is N
+        loss = 0.0
+        for i in range(len(X)):
+            loss += -np.log(self.class_prob_predict_single(X[i],y[i]))
+        return loss / len(X)
+        
+    def custom_loss(self, X, y, loss=None):
+        #### for code compatibility loss is redudant
+        return self.loss(self.add_bias_column(X), y)
+    
+    def pred(self, X):
+        
+        X = self.add_bias_column(X)
+        logits = np.matmul(X, np.tranpose(self.w))
+        logits = np.concat((logits, np.zeros((len(X),1))), axis=1)
+        return np.argmax(logits, axis=1) + 1
+    
+    def gradient_update_per_class(self, X, y, class_idx):
+        #####
+        prob_pred = self.class_prob_predict(X, class_idx)
+        binarized_y = (y==class_idx)
+        error = prob_pred - binarized_y
+        error = np.reshape(error, newshape=(-1,1))
+        grad_matrix = X*error
+        grad = np.mean(grad_matrix, axis=0)
+        return grad
+    
+    def update_weights(self, train_X, train_y, val_X, val_y):
+        
+        train_X = self.add_bias_column(train_X)
+        val_X = self.add_bias_column(val_X)
+        
+        if(self.num_updates==0):
+            self.train_loss.append(self.loss(train_X, train_y))
+            self.val_loss.append(self.loss(val_X, val_y))
+            
+            
+        ### gradient update loop
+        ### updates each gradient in the w matrix
+        for i in range(len(self.w)):
+            gradient_t = self.gradient_update_per_class(train_X, train_y, i+1)
+            self.w[i] = self.w[i] - self.learning_rate * gradient_t
+        ########################
+        
+        self.num_updates += 1
+        
+        self.train_loss.append(self.loss(train_X, train_y))
+        self.val_loss.append(self.loss(val_X, val_y))
