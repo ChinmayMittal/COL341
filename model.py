@@ -25,6 +25,7 @@ class LinearRegression():
         self.max_iters = max_iters
         self.train_loss = []
         self.val_loss = []
+        self.class_loss = {}
         self.num_updates = 0
         self.val_loss_decrease_threshold = val_loss_decrease_threshold
         self.lambda_ = lambda_
@@ -95,6 +96,9 @@ class LinearRegression():
         if(self.num_updates == 0):
             self.train_loss.append(self.custom_loss(train_X, train_y, loss="MSE", bias_added=True))
             self.val_loss.append(self.custom_loss(val_X, val_y, loss="MSE", bias_added=True))
+            for class_idx in range(1, 10):
+                choice = (train_y == class_idx)
+                self.class_loss[class_idx] = [self.custom_loss(train_X[choice, :], train_y[choice], loss="MSE", bias_added = True)]
 
         gradient_t = self.gradient(train_X, train_y)
         self.w = self.w - self.learning_rate * gradient_t
@@ -103,6 +107,9 @@ class LinearRegression():
         
         self.train_loss.append(self.custom_loss(train_X, train_y, loss="MSE", bias_added=True))
         self.val_loss.append(self.custom_loss(val_X, val_y, loss="MSE", bias_added=True))
+        for class_idx in range(1, 10):
+            choice = (train_y == class_idx)
+            self.class_loss[class_idx].append(self.custom_loss(train_X[choice, :], train_y[choice], loss="MSE", bias_added = True))
         
     def pred(self, X):
 
@@ -185,6 +192,11 @@ class OneVsAll():
         logits = np.matmul(X, np.transpose(self.w)) ###  N * c
         class_pred = np.argmax(logits, axis = 1) + 1
         return class_pred
+    
+    def accuracy(self, X, y):
+        pred = self.pred(X)
+        correct = (pred==y)
+        return (np.sum(correct)) / len(X)
     
     def loss(self, X, y):
         
@@ -313,9 +325,14 @@ class LinearClassifier():
     def pred(self, X):
         
         X = self.add_bias_column(X)
-        logits = np.matmul(X, np.tranpose(self.w))
-        logits = np.concat((logits, np.zeros((len(X),1))), axis=1)
+        logits = np.matmul(X, np.transpose(self.w))
+        logits = np.concatenate((logits, np.zeros((len(X),1))), axis=1)
         return np.argmax(logits, axis=1) + 1
+    
+    def accuracy(self, X, y):
+        pred = self.pred(X)
+        correct = (pred==y)
+        return (np.sum(correct)) / len(X)
     
     def gradient_update_per_class(self, X, y, class_idx):
         #####
