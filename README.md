@@ -1,1 +1,0 @@
-python main.py --train_path "./data/train.csv" --val_path "./data/validation.csv" --test_path "./data/test.csv" --out_path "./output/out.csv" --section 1

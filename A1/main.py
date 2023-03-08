@@ -19,12 +19,12 @@ parser.add_argument("--train_path", action="store", type=str, required=True, des
 parser.add_argument("--val_path", action="store", type=str, required=True, dest="val_path", help="path to val csv file")
 parser.add_argument("--test_path", action="store", type=str, required=True, dest="test_path", help="path to test csv file")
 parser.add_argument("--out_path", action="store", type=str, required=True, dest="out_path", help="path to generated output scores")
-parser.add_argument("--lr", action="store", type=float, required=False, dest="learning_rate", help="learning_rate", default=0.001)
-parser.add_argument("--sc", action="store", type=str, required=False, dest="stopping_criterion", help="stopping_criterion", default="maxit")
-parser.add_argument("--maxiter", action="store", type=int, required=False, dest="maxiter", help="max number of iterations", default=100)
-parser.add_argument("--valdec", action="store", type=float, required=False, dest="val_loss_decrease_threshold", help="val decrease threshold", default=0.01)
+parser.add_argument("--lr", action="store", type=float, required=False, dest="learning_rate", help="learning_rate", default=0.0005)
+parser.add_argument("--sc", action="store", type=str, required=False, dest="stopping_criterion", help="stopping_criterion maxit|reltol|combined", default="combined")
+parser.add_argument("--maxiter", action="store", type=int, required=False, dest="maxiter", help="max number of iterations", default=500)
+parser.add_argument("--valdec", action="store", type=float, required=False, dest="val_loss_decrease_threshold", help="val decrease threshold", default=0.00001)
 parser.add_argument("--lambda", action="store", type=float, required=False, dest="lambda_", help="Ridge Regularizer", default=5)
-parser.add_argument("--section", action="store", type=int, required=True, dest="section", help="1 for Linear Regression or 2 for Ridge Regression  or 5 for Classification")
+parser.add_argument("--section", action="store", type=int, required=True, dest="section", help="1 for Linear Regression or 2 for Ridge Regression  or 5 for Classification and 3 For Scikit Learn 4 for Feature selection and 8 for Bonus")
 args = parser.parse_args()
 
 
@@ -48,16 +48,19 @@ if __name__ == "__main__":
     print(f"Data Loaded .... ")
     
 
+    ### FOR DATA SPLIT EXPERIMENT
     data_split = 1
     if data_split != 1:
         train_features, second_train_features, train_scores, second_train_scores= train_test_split(train_features, train_scores, test_size=(1-data_split), random_state=1)
     # train_features, train_scores = second_train_features, second_train_scores
+    
     print(f"Train Data: {train_features.shape}")
     print(f"Val Data: {val_features.shape}")
     print(f"Test Data: {test_features.shape}")
     
+    
+    #### DATA NORMALIZATION SETTUP
     normalization = False
-    #### DATA NORMALIZATION
     if normalization:
         mean = np.mean(train_features, axis=0)
         variance = np.std(train_features, axis=0)
@@ -76,7 +79,7 @@ if __name__ == "__main__":
         ### FEATURE SELECTION   
         method = "select-from-model"
         # method = "k-best"
-        num_features_selected  = 2048
+        num_features_selected  = 10
         if method == "k-best":
             
             ### K-BEST
@@ -102,7 +105,7 @@ if __name__ == "__main__":
         
     if learning_rate is None:
         learning_rate = args.learning_rate
-    # stopping_criterion = "maxit" ### or "reltol"
+
     stopping_criterion = args.stopping_criterion
     max_iters = args.maxiter ### for "maxit"
     val_loss_decrease_threshold = args.val_loss_decrease_threshold ### for "reltol"
@@ -132,8 +135,7 @@ if __name__ == "__main__":
     
     elif args.section == 5:
         print(" Linear Classification ... ")
-        max_iters = 1000
-        model = LinearClassifier(n_classes=9, num_features=num_features, learning_rate=learning_rate, max_iters=max_iters)
+        model = LinearClassifier(n_classes=9, num_features=num_features, learning_rate=learning_rate, max_iters=max_iters, val_loss_decrease_threshold=val_loss_decrease_threshold, stopping_criterion=stopping_criterion)
     elif args.section == 8:
         print("One vs All .... ")
         max_iters = 3000
@@ -152,13 +154,16 @@ if __name__ == "__main__":
     
     print(f"Training MSE: {model.custom_loss(train_X, train_y, loss='MSE')}, Val MSE: {model.custom_loss(val_X, val_y, loss='MSE')}")
     print(f"Training MAE: {model.custom_loss(train_X, train_y, loss='MAE')}, Val MAE: {model.custom_loss(val_X, val_y, loss='MAE')}")
+    
+    plotting = False
     ### LOSS CURVES
-    if(model.train_loss is not None):
+    if(model.train_loss is not None and plotting):
         label = "Log Loss" if (args.section == 5 or args.section == 8 ) else "MSE"
         shift = False if args.section == 5 or generalization_analysis else True
         # class_loss = model.class_loss
         class_loss = None
         plot_loss(model.train_loss, model.val_loss, class_loss = class_loss, label = label, shift = shift)
+    
     if(args.section == 5 or args.section == 8):
         print(f"Train Accuracy: {model.accuracy(train_features, train_scores)}")
         print(f"Val Accuracy: {model.accuracy(val_features, val_scores)}")
@@ -172,13 +177,16 @@ if __name__ == "__main__":
             "pred" :  test_pred.tolist() 
         }
         test_df = pd.DataFrame(data=test_data)
+        if ".csv" not in args.out_path:
+            args.out_path = os.path.join(args.out_path, "out.csv")
         test_df.to_csv(args.out_path, header=False, index=False, sep=" ")
     
     
     # num_points = {}
     # for class_idx in range(1,10):
     #     num_points[class_idx] = np.sum((train_y==class_idx).astype(int))
-    #     plt.scatter(class_idx, model.class_loss[class_idx][-1]*num_points[class_idx], marker="X", color="red")
+    #     print(num_points[class_idx], class_idx)
+    # plt.scatter(class_idx, model.class_loss[class_idx][-1]*num_points[class_idx], marker="X", color="red")
     # plt.xlabel("Class")
     # plt.ylabel("Total Loss")
     # plt.title("Class wise Total Loss")

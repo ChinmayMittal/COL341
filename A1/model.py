@@ -85,7 +85,14 @@ class LinearRegression():
             else:
                 val_loss_decrease = self.val_loss[-1]-self.val_loss[-2]
                 relative_decrease = val_loss_decrease / (self.val_loss[-2])
-                return -1*relative_decrease < self.val_loss_decrease_threshold        
+                return -1*relative_decrease < self.val_loss_decrease_threshold  
+        elif self.stopping_criterion == "combined":
+            if(self.num_updates < self.max_iters):
+                return False
+            else:
+                val_loss_decrease = self.val_loss[-1]-self.val_loss[-2]
+                relative_decrease = val_loss_decrease / (self.val_loss[-2])
+                return -1*relative_decrease < self.val_loss_decrease_threshold                      
     
         
     def update_weights(self, train_X, train_y, val_X, val_y):
@@ -257,7 +264,7 @@ class OneVsAll():
 
 class LinearClassifier():
     
-    def __init__(self, n_classes, num_features, learning_rate=0.001, max_iters=10):
+    def __init__(self, n_classes, num_features, learning_rate=0.001, max_iters=10, val_loss_decrease_threshold=0.001, stopping_criterion="combined"):
         
         
         self.num_classes = n_classes
@@ -267,6 +274,8 @@ class LinearClassifier():
         self.num_updates = 0
         self.train_loss = []
         self.val_loss = []
+        self.stopping_criterion = stopping_criterion
+        self.val_loss_decrease_threshold = val_loss_decrease_threshold
         self.w = np.zeros((self.num_classes-1, self.num_features+1), dtype=np.float64) ### for C classes we require only C-1 weights 
         
     def add_bias_column(self, X):
@@ -278,7 +287,22 @@ class LinearClassifier():
 
     def training_finished(self):
         
-        return self.num_updates > self.max_iters
+        if self.stopping_criterion == "maxit":
+            return self.num_updates > self.max_iters
+        elif self.stopping_criterion == "reltol":
+            if(len(self.val_loss) < 2):
+                return False
+            else:
+                val_loss_decrease = self.val_loss[-1]-self.val_loss[-2]
+                relative_decrease = val_loss_decrease / (self.val_loss[-2])
+                return -1*relative_decrease < self.val_loss_decrease_threshold  
+        elif self.stopping_criterion == "combined":
+            if(self.num_updates < self.max_iters):
+                return False
+            else:
+                val_loss_decrease = self.val_loss[-1]-self.val_loss[-2]
+                relative_decrease = val_loss_decrease / (self.val_loss[-2])
+                return -1*relative_decrease < self.val_loss_decrease_threshold  
     
     
     def class_prob_predict(self, X, class_idx):

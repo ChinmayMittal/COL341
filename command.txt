@@ -1,3 +1,0 @@
-python main.py --train_path ./data/train.csv --val_path ./data/validation.csv --test_path ./data/test.csv --out_path ./output/ --section 1
-
-python main.py --train_path ./data/train.csv --val_path ./data/val.csv --test_path ./data/test.csv --out_path ./output/out.csv --lr 0.001 --sc maxit  --maxit 1000  --valdec 0.01  --lambda 5  --section 1
