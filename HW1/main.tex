@@ -1,0 +1,242 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+ 
+ \usepackage{amsmath,amssymb,bm}
+ \usepackage{algpseudocode, algorithm,algorithmicx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\title{COL341 Machine Learning Homework HW-1}
+\author{Chinmay Mittal}
+\date{February 2023}
+
+\begin{document}
+
+% \maketitle
+\hrule \medskip % Upper rule
+\begin{minipage}{0.295\textwidth} 
+\raggedright
+\footnotesize
+\large
+Chinmay Mittal (2020CS10336)
+\end{minipage}
+\begin{minipage}{0.4\textwidth} 
+\centering 
+\large 
+Homework 1 $\vert$ COL341 \\ 
+Machine Learning\\ 
+\end{minipage}
+\begin{minipage}{0.295\textwidth} 
+\raggedleft
+\today\hfill\\
+\end{minipage}
+\medskip\hrule 
+\bigskip
+
+%-------------------------------
+%	CONTENTS
+%-------------------------------
+
+\section*{Question 1}
+a) \\ 
+Given $H = X(X^TX)^{-1}X^T$, 
+\\
+To show H is symmetric we compute $H^T$
+\\
+$H^T = (X(X^TX)^{-1}X^{T})^T = ((X^T)^T ((X^T X)^{-1})^T X^T)$ using $(AB)^T = B^T A^T$, 
+\\
+$ \Rightarrow H^T = (X ((X^T X)^{T})^{-1} X^T )$, using $(A^{-1})^T = (A^T)^{-1}$ \\
+$\Rightarrow H^T = (X (X^T (X^T)^T)^{-1} X^T )$ using $(AB)^T = B^TA^T$ \\ 
+$\Rightarrow H^T = (X (X^T X)^{-1} X^T )$, using $(A^T)^T=A$ \\
+$\Rightarrow H^T = H$ \\
+$\Rightarrow H \text{ is symmetric}$
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+b)  \\ 
+To show that $H^K=H$ for any positive integer K, we use induction \\
+Base case is trivially true, for K=1, $H^K=H^1=H$ \\ 
+The induction hypothesis is that $H^{K-1}=H$ and we need to show that $H^K=H$,
+\\
+We have $H^K = H^{K-1}H = HH = H^2$ from the induction hypothesis \\ 
+$\Rightarrow H^K = (X(X^TX)^{-1}X^T)(X(X^TX)^{-1}X^T)$ \\ 
+$\Rightarrow H^K = (X(X^TX)^{-1}((X^TX)(X^TX)^{-1})X^T)$  from associativity of matrix multiplication\\
+$ \Rightarrow H^K = (X(X^TX)^{-1}(I)X^T) = H $ which proves our result by induction
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+c) \\ 
+
+To show that $(I-H)^K=(I-H)$ we use induction and as before the base case is trivially true. \\ 
+The induction hypothesis is that $(I-H)^{K-1}=(I-H)$ and we need to show $(I-H)^K=(I-H)$ \\ 
+$\Rightarrow (I-H)^K = (I-H)^{K-1}(I-H) = (I-H)^2$ \\
+$\Rightarrow (I-H)^K = (I-H)^2 = (I-H)(I-H) = I^2 - 2H + H^2$ \\ 
+$\Rightarrow (I-H)^K = I - 2H + H^2 = I - 2H + H = I- H $ following the above 1b) 
+\\ This proves our induction hypothesis
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+d) \\ 
+
+We need to show that $trace(H) = d+1$ 
+\\ 
+Consider $A=X(X^TX)^{-1}$ and $B=X^T$, thus we have $H=AB$ \\ 
+Now $trace(H) = trace(AB) = trace(BA) = trace(X^TX(X^TX)^{-1}) $ \\ 
+$\Rightarrow trace(H)= trace(I_{d+1}) = d+1 $ since $X^TX$ is d+1 dimensional  which proves the required result
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\section*{Question 2}
+
+a) \\ 
+
+The in-sample estimate of $y$ is given by $\bm{\hat{y}} = X\bm{w_{lin}}$ where $\bm{w_{lin}}$ are the learnt linear weights. \\
+$\bm{w_{lin}} = (X^TX)^{-1}X^T\bm{y} \Rightarrow \bm{\hat{y}} = (X(X^TX)^{-1}X^T\bm{y}) = H\bm{y}$, follows from the proof in class of learned linear weights\\ 
+$\Rightarrow \bm{\hat{y}} = H\bm{y} = H(X\bm{w^*} + \bm{\epsilon}) = (HX)\bm{w^*} + H\bm{\epsilon}$ \\ 
+Also we have, $HX = X(X^TX)^{-1}X^TX = X$ \\ 
+$\Rightarrow \bm{\hat{y}} = X\bm{w^*} + H\bm{\epsilon}$ as required \\ 
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+b) \\ 
+
+$\bm{\hat{y}} - \bm{y} = (X\bm{w^*} + H\bm{\epsilon}) - (X\bm{w^*} + H\bm{\epsilon}) = (H-I_N)\bm{\epsilon}$ 
+\\
+Thus the matrix is $H-I_N$
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+c) \\
+
+The insample error is given by $E_{in} = \frac{1}{N}(\bm{\hat{y}}-\bm{y})^T(\bm{\hat{y}}-\bm{y})$ \\ 
+
+$\Rightarrow E_{in} = \frac{1}{N}((H-I)\bm{\epsilon})^T((H-I)\bm{\epsilon})$ \\ 
+$ \Rightarrow E_{in} = \frac{1}{N} \bm{\epsilon}^T(H-I)^T(H-I)\bm{\epsilon} $ \\ 
+$\Rightarrow E_{in} =  \frac{1}{N} \bm{\epsilon}^T(H^T-I^T)(H-I)\bm{\epsilon}$ \\ 
+$ \Rightarrow E_{in} = \frac{1}{N} \bm{\epsilon}^T(H-I)^2\bm{\epsilon} $ since H is symmetric \\ 
+$ \Rightarrow E_{in} = \frac{1}{N} \bm{\epsilon}^T(I-H)\bm{\epsilon}$ since $(H-I)^2 = (I-H)^2 = I-H $ from 1c) 
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+d) \\ 
+
+From 1c) We have that $E_{in} = \frac{1}{N} \bm{\epsilon}^T(I-H)\bm{\epsilon}$
+\\
+$ \Rightarrow \mathbb{E}_{\mathcal{D}} [ E_{in}(\bm{w_{lin}}) ] = \mathbb{E}_{\mathcal{D}}[\frac{1}{N} \bm{\epsilon}^T(I-H)\bm{\epsilon}] $ \\ 
+$\Rightarrow \mathbb{E}_{\mathcal{D}} [ E_{in}(\bm{w_{lin}}) ] = \frac{1}{N} ( \mathbb{E}_{\mathcal{D}}[\bm{\epsilon}^T \bm{\epsilon}]  - \mathbb{E}_{\mathcal{D}}[\bm{\epsilon}^TH\bm{\epsilon}])$ \\
+$ = \frac{1}{N}( \mathbb{E}_{\mathcal{D}}[\sum_{i=1}^N(\epsilon_i^2)] - \mathbb{E}_{\mathcal{D}}[\bm{\epsilon}^TH\bm{\epsilon}] ) = \frac{1}{N}( \sum_{i=1}^N(\mathbb{E}_{\mathcal{D}}[\epsilon_i^2]) -\mathbb{E}_{\mathcal{D}}[\bm{\epsilon}^TH\bm{\epsilon}] )$ \\ 
+$ = \frac{1}{N}(N\sigma^2 - \mathbb{E}_{\mathcal{D}}[\bm{\epsilon}^TH\bm{\epsilon}])$ since $\epsilon_i$ is normally distributed with variance $\sigma^2$ \\ 
+$ = \sigma^2 - \frac{1}{N}\mathbb{E}_{\mathcal{D}}(\sum_{i=1}^N \sum_{j=1}^N (c_{ij} \epsilon_i \epsilon_j))$ from the definition of matrix multiplication \\ 
+$ = \sigma^2 - \frac{1}{N} \sum_{i=1}^N \sum_{j=1}^N (\mathbb{E}_{\mathcal{D}} (c_{ij} \epsilon_i \epsilon_j))$ \\ 
+$ = \sigma^2 - \frac{1}{N} \sum_{i=1}^N(\mathbb{E}_{\mathcal{D}} (c_{ii} \epsilon_i \epsilon_i))$, because $\mathbb{E}_{\mathcal{D}}[\epsilon_i\epsilon_j] =  \mathbb{E}_{\mathcal{D}}[\epsilon_i]\mathbb{E}_{\mathcal{D}}[\epsilon_j] = 0$ since $\epsilon_i$ and $\epsilon_j$ are independent.
+\\ Also Note here that $c_{ii} = H_{ii}$ from the definition of matrix multiplication \\
+$ = \sigma^2 - \frac{1}{N}\mathbb{E}_{\mathcal{D}}[\epsilon_i^2] \sum_{i=1}^N H_{ii}$ \\ 
+$\Rightarrow \sigma^2 - \frac{\sigma^2}{N}trace(H) $ \\ 
+$=\sigma^2(1-\frac{d+1}{N})$ from 1d) 
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+e) \\ 
+
+$\bm{y_{test}}-\bm{\hat{y}}_{test} = (X\bm{w}^* + \bm{\epsilon}') - (X\bm{w}^* + H\bm{\epsilon}) = \bm{\epsilon}' -  H\bm{\epsilon} $ \\ 
+$ E_{test}(\bm{w_{lin}}) = \frac{1}{N}(\bm{y_{test}} - \bm{\hat{y}}_{test})^T ( \bm{y_{test}} - \bm{\hat{y}}_{test} ) = \frac{1}{N}(H\bm{\epsilon} - \bm{\epsilon}')^T(H\bm{\epsilon} - \bm{\epsilon}') $ \\ 
+$ = \frac{1}{N}( (H\bm{\epsilon})^T  - \bm{\epsilon}'^T )(H\bm{\epsilon} - \bm{\epsilon}') = \frac{1}{N} ( \bm{\epsilon}^TH^T - \bm{\epsilon}'^T)(H\bm{\epsilon}-\bm{\epsilon}') $ \\
+$ = \frac{1}{N}(\bm{\epsilon}^TH^TH\bm{\epsilon} + \bm{\epsilon}'^2  - \bm{\epsilon}'^TH\bm{\epsilon} - \bm{\epsilon}^TH^T\bm{\epsilon'}) = \frac{1}{N}(\bm{\epsilon}^THH\bm{\epsilon} + \bm{\epsilon}^2  - \bm{\epsilon}'^TH\bm{\epsilon} - \bm{\epsilon}^TH^T\bm{\epsilon}') = \frac{1}{N}(\bm{\epsilon}^TH\bm{\epsilon} + \bm{\epsilon}'^2  - \bm{\epsilon}'^TH\bm{\epsilon} - \bm{\epsilon}^TH^T\bm{\epsilon}')$
+$ \Rightarrow \mathbb{E}_{\mathcal{D}, \bm{\epsilon}'}[E_{test}(\bm{w_{lin}})]= \frac{1}{N} ( \sigma^2(d+1) + N\sigma^2) - \mathbb{E}_{\mathcal{D}, \bm{\epsilon'}}[\bm{\epsilon}'^TH\bm{\epsilon} + \bm{\epsilon}^TH^T\bm{\epsilon}']$ which follows from 2d) \\ 
+$ = \frac{1}{N} ( \sigma^2(d+1) + N\sigma^2) + \mathbb{E}_{\mathcal{D}, \bm{\epsilon}'}[\sum_{i=1}^N \sum_{j=1}^N (c_{ij}) \epsilon_i \epsilon_j'] $ for some constant $c_{ij}$ derived from H following definition of matrix multiplication \\
+$ = \frac{1}{N} ( \sigma^2(d+1) + N\sigma^2)  + \sum_{i=1}^N \sum_{j=1}^N c_{ij} \mathbb{E}_{\mathcal{D}, \bm{\epsilon}'}[\epsilon_i] \mathbb{E}_{\mathcal{D}, \bm{\epsilon}'}[\epsilon_j'] = \frac{1}{N} ( \sigma^2(d+1) + N\sigma^2)  + 0  $ \\ 
+$  = \sigma^2(1 + \frac{d+1}{N})$
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\section*{Question 3}
+
+a) \\ 
+
+We have a test point with $y=\bm{x}^T\bm{w}^* + \epsilon $ \\ 
+The learn weights are $\bm{w_{lin}} = (X^TX)^{-1}X^T\bm{y_{train}}$ where $\bm{y_{train}} = X\bm{w}^* + \bm{ \epsilon }  $ \\ 
+Thus we get $g(x) = \bm{x}^T\bm{w_{lin}} = \bm{x}^T (X^TX)^{-1}X^T\bm{y_{train}} = x^T (X^TX)^{-1}X^T(X\bm{w}^*+\bm{ \epsilon })$ \\
+$\Rightarrow g(x) = x^T (X^TX)^{-1}X^TX\bm{w}^* +x^T (X^TX)^{-1}X^T \bm{\epsilon} = x^T(I)\bm{w}^* + x^T (X^TX)^{-1}X^T \bm{\epsilon} = x^T\bm{w}^* +   x^T (X^TX)^{-1}X^T \bm{\epsilon} $
+\\
+$\Rightarrow y - g(x) = (x^T\bm{w}^* + \epsilon) - (x^T\bm{w}^* +   x^T (X^TX)^{-1}X^T \bm{\epsilon})$ \\
+$\Rightarrow y - g(x) = \epsilon - x^T (X^TX)^{-1}X^T \bm{\epsilon} $
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+b) \\ 
+
+From the previous question we can conclude $E_{out} = \mathbb{E}_{x, \epsilon}
+[(y-g(x))^2]$ \\ 
+$E_{out} = \mathbb{E}_{x, \epsilon}[(\epsilon - x^T (X^TX)^{-1}X^T \bm{\epsilon} )^2]
+= \mathbb{E}_{x, \epsilon}[\epsilon^2 - 2\epsilon(x^T) (X^TX)^{-1}X^T \bm{\epsilon} +  x^T (X^TX)^{-1}X^T \bm{\epsilon} ( x^T (X^TX)^{-1}X^T \bm{\epsilon})^T ]$
+\\ $ = \mathbb{E}_{x, \epsilon}[\epsilon^2] - 2 \mathbb{E}_{x, \epsilon}[\epsilon]\mathbb{E}_{x, \epsilon}[x^T](X^TX)^{-1}X^T \bm{\epsilon} + 
+\mathbb{E}_{x, \epsilon}[x^T (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1}x]$
+ \\ 
+ $ = \sigma^2 - 0(\mathbb{E}_{x, \epsilon}[x^T](X^TX)^{-1}X^T \bm{\epsilon}) + \mathbb{E}_{x, \epsilon}[x^T (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1}x]
+  = \sigma^2 + \mathbb{E}_{x, \epsilon}[x^T (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1}x] $
+  \\
+  $ = \sigma^2 + \mathbb{E}_{x, \epsilon}[trace(x^T (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1}x)]$ , since the second term is a scalar taking the trace doesn't make a difference
+  \\
+  Now let $A=x^T (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1}$ and $B=x$ such that 
+  $= \sigma^2 + \mathbb{E}_{x, \epsilon}[trace(AB)] = \sigma^2 + \mathbb{E}_{x, \epsilon}[trace(BA)] $ \\ 
+  $ = \sigma^2  +  \mathbb{E}_{x, \epsilon}[trace(xx^T (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1})] = trace(\mathbb{E}_{x, \epsilon}[xx^T (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1}]) $ since trace and expectation commute
+  \\
+  =$ \sigma^2 + trace(\mathbb{E}_{x, \epsilon}[xx^T]((X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1}))$
+  \\ $ = \sigma^2 + trace(\sum (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T} X (X^TX)^{-1}) )$
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+c) \\ 
+
+$\bm{\epsilon} \bm{\epsilon}^T $  is a matrix with the  entries $[\epsilon_i \epsilon_j]$  \\ 
+$\mathbb{E}[\epsilon_i \epsilon_i] = \sigma^2$ and $\mathbb{E}[\epsilon_i \epsilon_j]  = \mathbb{E}[\epsilon_i]\mathbb{E}[\epsilon_j] = 0 $ when $ i \neq j $
+\\
+Hence we get that $\mathbb{E}_{\bm \epsilon}[\bm{\epsilon}\bm{\epsilon}^T]
+ = \sigma^2 \mathbb{I_{N}}$
+
+ \par\noindent\rule{\textwidth}{0.4pt}
+
+d) \\ 
+
+From 3b) We have that $E_{out} = \sigma ^2 + trace(\sum (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T}X(X^TX)^{-1})$ \\ 
+$ \Rightarrow \mathbb{E}_{\bm{\epsilon}}[E_{test}] = \mathbb{E}_{\bm{\epsilon}}[\sigma^2  + trace(\sum (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T}X(X^TX)^{-1})]$
+$ = \sigma^2 + \mathbb{E}_{\bm{\epsilon}}[trace(\sum (X^TX)^{-1}X^T \bm{\epsilon} \bm{\epsilon^T}X(X^TX)^{-1})]$
+\\  $ = \sigma^2 + trace(\sum  (X^TX)^{-1}X^T \mathbb{E}_{\bm{\epsilon}}[\bm{\epsilon}\bm{\epsilon^T}]X(X^TX)^{-1} )$ since other parts are independent of the expectation \\ 
+$ = \sigma^2 + trace( \sum (X^TX)^{-1}X^T(\sigma^2\mathbb{I})X(X^TX)^{-1})$ from 3c) \\
+$ = \sigma^2 + \sigma^2 trace(\sum (X^TX)^{-1}X^TX(X^TX)^{-1})$ \\ 
+$ = \sigma^2 + \sigma^2trace(\sum((X^TX)^{-1}(X^TX))(X^TX)^{-1})$
+\\
+$ = \sigma^2 + \sigma^2trace(\sum(X^TX)^{-1}) = \sigma^2 + \sigma^2(\sum \frac{1}{N} (\frac{1}{N}(X^TX))^{-1})$
+\\
+$ \Rightarrow E_{out} = \sigma^2 + \frac{\sigma^2}{N} trace(\sum(\frac{1}{N}(X^TX)^{-1}))$
+\\
+Also we have that $\frac{1}{N}(X^TX)$ is the N sample estimate of $\sum$ thus if we approximate $\sum \approx \frac{1}{N}(X^TX)^{-1}$ we get $E_{out} \approx \sigma^2 + \frac{\sigma^2}{N}trace(\sum \sum ^{-1}) = \sigma^2 + \frac{\sigma^2}{N}trace(\mathbb{I}_{d+1}) \approx \sigma^2 + \frac{\sigma^2}{N}(d+1)$ on average 
+
+ \par\noindent\rule{\textwidth}{0.4pt}
+
+e)
+
+Consider the Random Variable (Matrix) defined as $Y=\sum \frac{1}{N}(X^TX)^{-1}$, here the randomness is over the values of $X$ that is the features. 
+\\
+The random variable $Y$ has a true mean (which is a matrix) this true mean is the same as taking $ N \rightarrow \infty $ from which we can see $\mathbb{E}[Y] = \mathbb{I}_{d+1}$. \\
+Hoeffding's inequality can be applied to each entry in the matrix which is itself a random variable \\ 
+from this, we can say that with a high probability $\sum \frac{1}{N} (X^TX)^{-1} < \mathbb{I}_{d+1} + c $ where c is a constant matrix and the inequality is applied element-wise (this is just an alternate form of the Law of Large Numbers). \\
+Thus using the Law of Large Numbers in this form of Hoeffding's inequality 
+we get that with high probability:
+
+$E_{out} = \sigma^2 + \frac{\sigma^2}{N}trace(\mathbb{I}_{d+1} + c)$ where c is a constant matrix \\
+$ \Rightarrow E_{out} = \sigma^2 + \frac{\sigma^2}{N}(d+1 + k)$ with high probability where k is constant such that $ k = trace(c)$ 
+\\ $ \Rightarrow E_{out} = \sigma^2 ( 1 + \frac{d+1}{N} + \frac{k}{N}) = \sigma^2(1+\frac{d+1}{N} + \emph{o}(\frac{1}{N}))$ from the definition of the little-$(o)$ notation which proves our result.
+
+ 
+\end{document}
+\end{document}
