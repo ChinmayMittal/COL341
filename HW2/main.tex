@@ -1,0 +1,177 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+ 
+ \usepackage{amsmath,amssymb,bm}
+ \usepackage{algpseudocode, algorithm,algorithmicx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\title{COL341 Machine Learning Homework HW-2}
+\author{Chinmay Mittal}
+\date{February 2023}
+
+\begin{document}
+
+% \maketitle
+\hrule \medskip % Upper rule
+\begin{minipage}{0.295\textwidth} 
+\raggedright
+\footnotesize
+\large
+Chinmay Mittal (2020CS10336)
+\end{minipage}
+\begin{minipage}{0.4\textwidth} 
+\centering 
+\large 
+Homework 2 $\vert$ COL341 \\ 
+Machine Learning\\ 
+\end{minipage}
+\begin{minipage}{0.295\textwidth} 
+\raggedleft
+\today\hfill\\
+\end{minipage}
+\medskip\hrule 
+\bigskip
+\section*{Question 1}
+The primal optimization problem for the soft-margin SVM is as follows
+$$ \underset{\bm{w}, b, \bm{\xi}}{min} \hspace{3mm} \frac{1}{2}\bm{w}\bm{w}^T + C \sum_{n=1}^N \xi_{n}$$
+$$\text{subject to   } y_n(\bm{w}^T \bm{x}_n + b) \geq 1 - \xi_{n} \hspace{3mm} \text{for   } n=1,2,3 
+\dots N$$
+$$ \xi_n \geq 0 \text{ for } n = 1,2,3 \dots N $$ 
+The Lagrangian of the primal optimization problem is given by:
+$$ \mathcal{L}(\bm{w}, b, \bm{\xi}, \bm{\alpha}, \bm{\beta}) = \frac{1}{2}\bm{w}\bm{w}^T + C \sum_{n=1}^N \xi_{n} + \sum_{n=1}^N \alpha_n ( 1- \xi_n - y_n(\bm{w}^T \bm{x}_n + b)) - \sum _{n=1}^N \beta_n \xi_n $$
+Here $\alpha_n \geq 0$ are the Lagrange multipliers for the constraints $y_n(\bm{w}^T \bm{x}_n + b) \geq 1 - \xi_{n}$ and $\beta_n \geq 0 $ are the Lagrange multipliers for the constraints $ \xi_n \geq 0 $.
+
+From the KKT optimality conditions we have, $\frac{\partial \mathcal{L}}{ \partial \xi_n} = 0 $ (stationarity condition) which gives us:
+\begin{equation} \label{eq:1}
+    \frac{\partial \mathcal{L}}{ \partial \xi_n} = C + \alpha_n - \beta_n = 0  \Rightarrow \alpha_n + \beta_n = C \text{ for } n = 1,2 \dots N  \tag{1}
+\end{equation} 
+Substituting $\beta_n = C - \alpha_n $ in the Lagrangian we have:
+$$ \mathcal{L}(\bm{w}, b, \bm{\xi}, \bm{\alpha}) = \frac{1}{2}\bm{w}\bm{w}^T + C \sum_{n=1}^N \xi_{n} + \sum_{n=1}^N \alpha_n ( 1- \xi_n - y_n(\bm{w}^T \bm{x}_n + b)) - \sum _{n=1}^N (C - \alpha_n) \xi_n$$
+$$ =  \frac{1}{2}\bm{w}\bm{w}^T + \sum_{n=1}^N \alpha_n(1-y_n(\bm{w}^T\bm{x}_n+b))$$
+$$ \text{subject to  }\alpha_n \geq 0, \beta_n \geq 0 \text{ for } n =1,2, \dots N $$ 
+the constraints simplify to 
+\begin{equation}\label{eq:2}
+    \alpha_n \geq 0, C - \alpha_n \geq 0 \Rightarrow 0 \leq \alpha_n \leq C \text{ for } n=1,2, \dots N \tag{2}
+\end{equation}
+From the KKT optimality conditions we have $\frac{ \partial \mathcal{L}}{ \partial b} = 0, \frac{\partial \mathcal{L}}{ \partial \bm{w}} = 0 $ (stationarity condition)
+\begin{equation} \label{eq:3}
+    \frac{ \partial \mathcal{L}}{ \partial b} = - \sum_{n=1}^N \alpha_n y_n = 0 \tag{3}
+\end{equation}
+$$ \frac{ \partial \mathcal{L}}{ \partial \bm{w}} = \bm{w} - \sum_{n=1}^N \alpha_n y_n \bm{x}_n = 0 \Rightarrow \bm{w} = \sum_{n=1}^{N} \alpha_n y_n \bm{x_n} $$
+Substituting in the Lagrangian we get:
+$$\mathcal{L} = \frac{1}{2} \bm{w}^T \bm{w} + \sum_{n=1}^N \alpha_n - b \sum_{n=1}^N(\alpha_n y_n) - \bm{w}^T \sum_{n=1}^{N} \alpha_n y_n \bm{x}_n$$
+$$ = \frac{1}{2} \bm{w}^T \bm{w} + \sum_{n=1}^N \alpha_n - \bm{w}^T \bm{w} = \sum_{n=1}^N \alpha_n  -\frac{1}{2} \bm{w}^T \bm{w} $$
+$$ = \sum_{n=1}^N \alpha_n - \frac{1}{2}(\sum_{n=1}^{N} \alpha_n y_n \bm{x_n}^T)(\sum_{m=1}^{N} \alpha_m y_m \bm{x_m})  $$
+$$ = \sum_{n=1}^N \alpha_n - \frac{1}{2} \sum_{n=1}^N \sum_{m=1}^N \alpha_n \alpha_m y_n y_m \bm{x}_n^T \bm{x}_m $$
+The dual optimization problem thus becomes:
+$$ \underset{\bm{\alpha}}{max} \hspace{4mm} \sum_{n=1}^N \alpha_n - \frac{1}{2} \sum_{n=1}^N \sum_{m=1}^N \alpha_n \alpha_m y_n y_m \bm{x}_n^T \bm{x}_m  $$
+The constraints come from equation \eqref{eq:2} and \eqref{eq:3}
+$$ \text{subject to } \sum_{n=1}^N \alpha_n y_n = 0, 0  \leq \alpha_n \leq C $$
+which is same as 
+$$ \underset{\bm{\alpha} \in \mathcal{R}^\mathcal{N} }{min} \hspace{4mm} \frac{1}{2} \sum_{n=1}^N \sum_{m=1}^N \alpha_n \alpha_m y_n y_m \bm{x}_n^T \bm{x}_m  - \sum_{n=1}^N \alpha_n  $$
+$$ \text{subject to } \sum_{n=1}^N \alpha_n y_n = 0, 0  \leq \alpha_n \leq C $$
+\section*{Question 2}
+\subsection*{N even}
+Fix $x_1, x_2 \dots x_N$ be N points that are shattered by hyperplanes with margin $\rho$. 
+\\
+We randomly assign $\frac{N}{2}$ of the labels from $y_1, y_2, \dots y_N$ to be +1 and the others to be $-1$, thus by construction $ \sum_{n=1}^N y_n = 0$
+\par\noindent\rule{\textwidth}{0.8pt}
+\\
+1) $$ || \sum_{n=1}^N y_n \bm{x}_n||^2 = (\sum_{n=1}^Ny_n \bm{x_n})^T(\sum_{m=1}^Ny_m\bm{x_m}) = (\sum_{n=1}^Ny_n \bm{x_n}^T)(\sum_{m=1}^Ny_m\bm{x_m}) = \sum_{n=1}^N\sum_{m=1}^N y_n y_m \bm{x_n}^T \bm{x_m} $$
+\vspace{2mm}
+\par\noindent\rule{\textwidth}{0.8pt}
+2) $$ \text{When }  n = m \Rightarrow y_n = y_m \Rightarrow y_n y_m = y_n ^ 2 = |y_n|^2 = 1 $$
+$$ \text{Thus we get } \mathbb{P}[y_n y_m=1] = 1 \text{when } n=m $$
+$$ \text{Next consider the case when } n \neq m, y_n y_m = 1 \text{ when both } y_n, y_m \text{ are } 1 \text{ or } -1. $$
+$$\mathbb{P}[y_n y_m = 1 ] = \frac{N/2}{N} \frac{N/2-1}{N-1} + \frac{N/2}{N} \frac{N/2-1}{N-1} = \frac{N/2-1}{N-1}$$
+We have $N/2$ labels +1 and $N/2$ labels which are -1. The first part is when both are +1 and the second part is when both are -1.
+$$ \text{Thus } \mathbb{E}[y_n y_m] = 1 \text{ when } n=m \text{ (constant). } $$
+When $ n \neq m $
+$$\mathbb{E}[y_n y_m] = (+1(\frac{N/2-1}{N-1}) -1 (1 -\frac{N/2-1}{N-1} ))$$
+
+$$\mathbb{E}[y_n y_m] = 2(\frac{N/2-1}{N-1})-1 = \frac{N-2}{N-1}-1 = -\frac{1}{N-1}$$
+
+\[
+    \mathbb{E}[y_n y_m] = 
+\begin{cases}
+    1,& n = m \\
+    -\frac{1}{N-1}, & n \neq m 
+\end{cases}
+\]
+\vspace{2mm}
+\par\noindent\rule{\textwidth}{0.8pt}
+3) 
+From Linearity of Expectation
+$$\mathbb{E}[|| \sum_{n=1}^N y_n \bm{x}_n||^2] = \mathbb{E}[\sum_{n=1}^N\sum_{m=1}^N y_n y_m \bm{x_n}^T \bm{x_m}] = \sum_{n=1}^N\sum_{m=1}^N \mathbb{E}[ y_n y_m \bm{x_n}^T \bm{x_m}] = \sum_{n=1}^N\sum_{m=1}^N \mathbb{E}[ y_n y_m] \bm{x_n}^T \bm{x_m} $$
+$$ = \sum_{n=1}^N \bm{x_n}^T \bm{x_n} + \sum_{n=1}^N\sum_{m=1, m\neq n}^N -\frac{1}{N-1} \bm{x_n}^T \bm{x_m} $$
+
+$$ = \sum_{n=1}^N \bm{x_n}^T \bm{x_n} - \frac{1}{N-1} \sum_{n=1}^N \bm{x_n}^T(\sum_{m=1}^N \bm{x}_m - \bm{x}_n) = \sum_{n=1}^N \bm{x_n}^T \bm{x_n} + \frac{1}{N-1} \sum_{n=1}^N \bm{x_n}^T\bm{x_n} -\frac{1}{N-1} \sum_{n=1}^N \bm{x_n}^T(N \bm{\bar{x}}) $$
+
+$$ = \frac{N}{N-1}\sum_{n=1}^N \bm{x_n}^T\bm{x_n} - \frac{N}{N-1} \sum_{n=1}^N \bm{x_n}^T \bm{\bar{x}} $$
+
+$$ = \frac{N}{N-1}( \sum_{n=1}^N \bm{x_n}^T\bm{x_n} + \sum_{n=1}^N \bm{\bar{x}}^T \bm{x_n} - 2 \sum_{n=1}^N \bm{\bar{x}}^T \bm{x_n})$$
+
+We also have $ \sum_{n=1}^N \bm{x}_n = \sum_{n=1}^N \bar{\bm{x}} $
+
+Thus we get
+$$\mathbb{E}[|| \sum_{n=1}^N y_n \bm{x}_n||^2] = \frac{N}{N-1}( \sum_{n=1}^N \bm{x_n}^T\bm{x_n} + \sum_{n=1}^N  \bar{\bm{x}}^T \bar{\bm{x}} - 2 \sum_{n=1}^N \bar{\bm{x}}^T \bm{x_n}) $$
+
+$$ = \frac{N}{N-1} \sum_{n=1}^N( \bar{\bm{x}}^T - \bm{x_n}^T)( \bar{\bm{x}} - \bm{x_n})$$
+
+$$ = \frac{N}{N-1} \sum_{n=1}^N( || \bar{\bm{x}} - \bm{x_n}||^2) $$
+\vspace{2mm}
+\par\noindent\rule{\textwidth}{0.8pt}
+4)
+$$ \sum_{n=1}^{N} || \bm{\bar{x}} - \bm{x}_n ||^2 = \sum_{n=1}^{N} 
+ ( \bm{\bar{x}}^T - \bm{x_n}^T)(\bm{\bar{x}} - \bm{x_n}) $$
+ \\
+ $$ = \sum_{n=1}^N \bm{x_n}^T \bm{x_n} + \sum_{n=1}^N  \bm{\bar{x}}^T \bm{\bar{x}} - 2 \sum_{n=1}^N \bm{\bar{x}}^T \bm{x_n} = \sum_{n=1}^N \bm{x_n}^T \bm{x_n} + \sum_{n=1}^N  \bm{\bar{x}}^T \bm{\bar{x}} -2 \bm{\bar{x}}^T \sum_{n=1}^N \bm{x}_n  $$ 
+Since $ \sum_{n=1}^N \bm{x}_n = \sum_{n=1}^N \bar{\bm{x}} $
+ $$  = \sum_{n=1}^N \bm{x_n}^T \bm{x_n} + \sum_{n=1}^N  \bm{\bar{x}}^T \bm{\bar{x}} -2 \bm{\bar{x}}^T \sum_{n=1}^N \bm{\bar{x}} $$
+
+$$ = \sum_{n=1}^N \bm{x_n}^T \bm{x_n} + \sum_{n=1}^N  \bm{\bar{x}}^T \bm{\bar{x}} - 2 \sum_{n=1}^N \bm{\bar{x}}^T \bm{x_n} = \sum_{n=1}^N \bm{x_n}^T \bm{x_n} - \sum_{n=1}^N  \bm{\bar{x}}^T \bm{\bar{x}} $$
+
+$$ \leq  \sum_{n=1}^N \bm{x_n}^T \bm{x_n}  \text{ since } \bm{\bar{x}}^T \bm{\bar{x}} \geq 0 $$
+\\
+Hence $$ \sum_{n=1}^{N} || \bm{\bar{x}} - \bm{x}_n ||^2  \leq \sum_{n=1}^N ||\bm{x}_n||^2 \leq NR^2 \text{ since } ||\bm{x}_n|| \leq R $$
+\vspace{2mm}
+\par\noindent\rule{\textwidth}{0.8pt}
+
+\vspace{2mm}
+
+5) $$\mathbb{E}[|| \sum_{n=1}^N y_n \bm{x}_n||^2] = \frac{N}{N-1} \sum_{n=1}^{N}(|| \bar{\bm{x}} - \bm{x}_n ||^2) \leq \frac{N}{N-1} NR^2  = \frac{N^2R^2}{N-1} $$
+\\[2mm]
+Consider a positive Random Variable X 
+$$\mathbb{P}[X \leq c] = 0 \Rightarrow \mathbb{E}[X^2] > c^2 $$
+\\[2mm]
+Thus $$\mathbb{E}[X^2] \leq c^2 => \mathbb{P}[X \leq c] > 0 $$
+\\[2mm]
+Thus we can conclude that
+$$\mathbb{E}[|| \sum_{n=1}^N y_n \bm{x}_n||^2] \leq \frac{N^2R^2}{N-1} \Rightarrow \mathbb{P}[|| \sum_{n=1}^N y_n \bm{x}_n || \leq \frac{NR}{\sqrt{N-1}} > 0] $$
+\vspace{2mm}
+\par\noindent\rule{\textwidth}{0.8pt}
+Thus there exists some assignment $y_1, y_2, \dots  y_N$, $\sum_{n=1}^Ny_n = 0$ such that $ || \sum_{n=1}^N y_n \bm{x}_n || \leq \frac{NR}{\sqrt{N-1}}$ and $\bm{x_1}, \dots $ $ \bm{x_N} $ are shattered by hyperplanes with margin $\rho$. 
+\\
+$$ \Rightarrow \rho ||\bm{w}|| \leq y_n(\bm{w}^T\bm{x}_n + b) $$
+\\
+$$ \Rightarrow N \rho||\bm{w}|| \leq \sum_{n=1}^N y_n(\bm{w}^T \bm{x}_n + b) = \bm{w}^T \sum_{n=1}^N(y_n \bm{x}_n) + b \sum_{n=1}^N y_n = \bm{w}^T \sum_{n=1}^N(y_n \bm{x}_n) + 0  $$
+\\
+Using Cauchy-Schwartz Inequality ($ || x^T y || \leq \ || x || \ || y ||$): 
+\\
+$$ N \rho || \bm{w} || \leq  \bm{w}^T \sum_{n=1}^N(y_n \bm{x}_n) \leq ||\bm{w}^T|| \hspace{1mm} || \sum_{n=1}^N(y_n \bm{x}_n) || $$
+$$ N \rho || \bm{w} || \leq || \bm{w} || \frac{NR}{\sqrt{N-1}} $$
+
+$$ \rho \leq  \frac{R}{\sqrt{N-1}} => \Rightarrow N \leq \frac{R^2}{\rho^2} + 1 $$
+\par\noindent\rule{\textwidth}{0.8pt}
+\end{document}
+
