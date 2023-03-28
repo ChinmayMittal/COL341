@@ -146,7 +146,7 @@ if __name__ == "__main__":
     ### TRAINING_LOOP
     print("Training Started ... ")
     while(True):
-        print(f"Num Updates: {model.num_updates}", end="\r")
+        # print(f"Num Updates: {model.num_updates}", end="\r")
         model.update_weights(train_X, train_y, val_X, val_y)
         if(model.training_finished()):
             break
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     print(f"Training MSE: {model.custom_loss(train_X, train_y, loss='MSE')}, Val MSE: {model.custom_loss(val_X, val_y, loss='MSE')}")
     print(f"Training MAE: {model.custom_loss(train_X, train_y, loss='MAE')}, Val MAE: {model.custom_loss(val_X, val_y, loss='MAE')}")
     
-    plotting = False
+    plotting = True
     ### LOSS CURVES
     if(model.train_loss is not None and plotting):
         label = "Log Loss" if (args.section == 5 or args.section == 8 ) else "MSE"
