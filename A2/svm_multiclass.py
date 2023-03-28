@@ -43,6 +43,7 @@ class Trainer_OVO:
         #TODO: implement
         #Return the predicted labels
         X,y = read_file_multi(test_data_path)
+        self.X_test, self.y_test = X,y
         n = X.shape[0]
         votes = np.zeros(shape=(X.shape[0], self.n_classes))
         for i in range(self.n_classes):
@@ -52,8 +53,12 @@ class Trainer_OVO:
                 votes[:,i] += pred
                 votes[:,j] += (1-pred)
         y_pred = (np.argmax(votes, axis=1)+1)
-        print(np.sum(np.array(y_pred) == y) / n)
-                
+        # print(np.sum(np.array(y_pred) == y) / n)
+        return y_pred        
+        
+    def get_accuracy(self,test_data_path:str):
+        y_pred = self.predict(test_data_path)
+        return np.sum(np.array(y_pred) == self.y_test) / self.X_test.shape[0]       
     
 class Trainer_OVA:
     def __init__(self, kernel, C=None, n_classes = -1, **kwargs) -> None:
@@ -84,6 +89,7 @@ class Trainer_OVA:
         #TODO: implement
         #Return the predicted labels
        X,y = read_file_multi(test_data_path)
+       self.X_test, self.y_test = X,y
        n = X.shape[0]
        pred_list = []
        for i in range(self.n_classes):
@@ -91,5 +97,9 @@ class Trainer_OVA:
            pred_list.append(np.reshape(pred, newshape=(X.shape[0],1)))
        signal_pred = np.hstack(pred_list)
        y_pred = (np.argmax(signal_pred, axis=1)+1)
-       print(np.sum(np.array(y_pred) == y) / n)
+    #    print(np.sum(np.array(y_pred) == y) / n)
+       return y_pred
        
+    def get_accuracy(self,test_data_path:str):
+        y_pred = self.predict(test_data_path)
+        return np.sum(np.array(y_pred) == self.y_test) / self.X_test.shape[0]

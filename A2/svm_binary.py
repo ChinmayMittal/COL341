@@ -3,16 +3,17 @@ import numpy as np
 # import qpsolvers
 from qpsolvers import solve_qp
 from utilities import read_file
-from kernel import get_k_mat
+from kernel import get_k_mat, get_k_mat_
 
-eps = 1e-5
+eps = 1e-4
 
-def get_pred_signal(x, support_alphas, support_ys, support_xs, b, kernel):
+def get_pred_signal(x, support_alphas, support_ys, support_xs, b, kernel, **kwargs):
     
-    temp_x = np.vstack((support_xs, x))
-    temp_k_mat = get_k_mat(temp_x, kernel)
-    
-    return b + np.sum(support_ys * support_alphas * temp_k_mat[-1,:-1])
+    # temp_x = np.vstack((support_xs, x))
+    # temp_k_mat = get_k_mat(temp_x, kernel, **kwargs)
+    kernel_values = get_k_mat_(x, support_xs, kernel, **kwargs)
+    # return b + np.sum(support_ys * support_alphas * temp_k_mat[-1,:-1])
+    return b + np.sum(support_ys * support_alphas * kernel_values[0])
 
 class Trainer:
     def __init__(self,kernel,C=None,**kwargs) -> None:
@@ -36,7 +37,7 @@ class Trainer:
         self.y_train = (self.y_train*2-1)
         
         self.N_train = self.X_train.shape[0]
-        K_mat = get_k_mat(self.X_train, self.kernel)
+        K_mat = get_k_mat(self.X_train, self.kernel, **self.kwargs)
 
         y = np.reshape(self.y_train, newshape=(self.N_train,1))
         y_mat = np.hstack([y]*self.N_train)
@@ -49,8 +50,7 @@ class Trainer:
         A = np.array(self.y_train)
         b = np.array([0.0])
         
-        alpha = solve_qp(P=P, q=q, G=G, h=h, A=A, b=b, lb=lb, ub=ub, solver="osqp")
-        
+        alpha = solve_qp(P=P, q=q, G=G, h=h, A=A, b=b, lb=lb, ub=ub, solver="ecos")
         b_mask = np.logical_and( alpha > eps, alpha < self.C - eps ) ###  0 < alpha < C
         
         support_vector_mask = alpha > eps
@@ -64,8 +64,8 @@ class Trainer:
         b_vector = self.X_train[[b_ind], :]
         ######################################
 
-        signal = get_pred_signal(x=b_vector, support_alphas=self.alpha_support, support_xs=self.x_support, support_ys=self.y_support, b = 0 , kernel=self.kernel)
-        self.b = 1/self.y_train[b_ind] - signal
+        signal = get_pred_signal(x=b_vector, support_alphas=self.alpha_support, support_xs=self.x_support, support_ys=self.y_support, b = 0 , kernel=self.kernel, **self.kwargs)
+        self.b = self.y_train[b_ind] - signal
         
     def predict(self, test_data_path:str)->np.ndarray:
         #TODO: implement
@@ -78,14 +78,19 @@ class Trainer:
         n = X.shape[0]
         y_pred = []
         for i in range(n):
-            signal = get_pred_signal(x=X[[i],:], support_alphas=self.alpha_support, support_ys=self.y_support, support_xs=self.x_support, b=self.b, kernel=self.kernel)
+            signal = get_pred_signal(x=X[[i],:], support_alphas=self.alpha_support, support_ys=self.y_support, support_xs=self.x_support, b=self.b, kernel=self.kernel, **self.kwargs)
             if not raw_signal:
                 y_pred.append( 1 if signal > 0 else 0 )
             else:
                 y_pred.append(signal)
         
-        if not raw_signal and y is not None:
-            print(np.sum(np.array(y_pred) == y) / n )
+        # if not raw_signal and y is not None:
+        #     print(np.sum(np.array(y_pred) == y) / n )
             
         return np.asarray(y_pred, dtype=np.float32)
+    
+    def get_accuracy(self,test_data_path:str):
+        X, y = read_file(test_data_path)
+        y_pred = self.predict_helper(X,y,raw_signal=False)
+        return np.sum(np.array(y_pred) == y) / X.shape[0]
     
