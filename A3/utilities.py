@@ -1,8 +1,11 @@
-import typing
 import os
-import numpy as np
 import cv2
-from sklearn.metrics import precision_score, recall_score
+import typing
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import precision_score, recall_score, confusion_matrix
 
 class_name_to_label = {
     "car" : 0,
@@ -38,7 +41,15 @@ def read_data(path:str):
 def get_accuracy(y_true, y_pred):
     return (np.sum(y_pred == y_true)/y_true.shape[0]) * 100
 
-def get_metrics(y_true, y_pred):
+def get_metrics(y_true, y_pred, average="binary"):
     ### accuracy, precision, recall
-    return get_accuracy(y_true, y_pred), precision_score(y_true, y_pred), recall_score(y_true, y_pred)        
+    return get_accuracy(y_true, y_pred), precision_score(y_true, y_pred, average=average), recall_score(y_true, y_pred, average=average)        
     
+def plot_confusion_matrix(y_true, y_pred):
+    cf = confusion_matrix(y_true.astype(np.int32), y_pred.astype(np.int32))
+    confusion_df = pd.DataFrame(cf, index = ["0", "1"], columns=["0", "1"])
+    plt.figure(figsize=(7,7))
+    sns.heatmap(confusion_df, annot=True, fmt=".0f", cmap="Blues")
+    plt.ylabel("True Label")
+    plt.xlabel("Prediction Label")
+    plt.show()

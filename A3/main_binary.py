@@ -6,7 +6,8 @@ from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import GridSearchCV
-from utilities import read_data, class_name_to_label, get_metrics
+from sklearn.ensemble import RandomForestClassifier
+from utilities import read_data, class_name_to_label, get_metrics, plot_confusion_matrix
 
 parser = argparse.ArgumentParser(
                     prog = 'Decision Trees and Random Forests',
@@ -36,6 +37,7 @@ print(f"Valdiation Data: {X_val.shape}")
 visualization = False
 grid_search = False
 trained = False
+plot_confusion = False
 tree_params = {
     "criterion" : "gini",
     "max_depth" : 10,
@@ -45,6 +47,7 @@ tree_params = {
 
 if args.section == "B":
     ### sk-learn decision trees
+    print("Sklearn Decision Trees")
     model = DecisionTreeClassifier(**tree_params)
     
 
@@ -62,18 +65,85 @@ elif args.section == "C":
     visualization = True
     grid_search = True
 
+elif args.section == "D":
+    model = DecisionTreeClassifier(random_state=0)
+    path = model.cost_complexity_pruning_path(X_train, y_train)
+    ccp_alphas, impurities = path.ccp_alphas, path.impurities
+    fig, ax = plt.subplots(figsize=(12,6))
+    ax.plot(ccp_alphas[:-1], impurities[:-1], marker="o", drawstyle="steps-post", color="red")
+    ax.set_xlabel("Effective alpha")
+    ax.set_ylabel("Total impurity of leaves")
+    ax.set_title("Total Impurity vs Effective alpha for Training set")
+    plt.grid(True)
+    plt.show()
+    plt.clf()
+    clfs = []
+    for i, ccp_alpha in enumerate(ccp_alphas):
+        print(f"Training Pruned Trees {(i/len(ccp_alphas))*100:.2f}%", end="\r")
+        clf = DecisionTreeClassifier(random_state=0, ccp_alpha=ccp_alpha)
+        clf.fit(X_train, y_train)
+        clfs.append(clf)
+    clfs, ccp_alphas = clfs[:-1], ccp_alphas[:-1] ### last tree is trivial tree with single node
+    node_counts = [clf.tree_.node_count for clf in clfs]
+    depths = [clf.tree_.max_depth for clf in clfs]
+    train_scores = [clf.score(X_train, y_train) for clf in clfs]
+    val_scores = [clf.score(X_val, y_val) for clf in clfs]
+    
+    fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(12,6))
+    ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")
+    ax[0].set_xlabel("Alpha")
+    ax[0].set_ylabel("Number of nodes")
+    ax[0].set_title("Number of nodes vs Alpha")
+    ax[0].grid(True)
+    ax[1].plot(ccp_alphas, depths, marker="o", drawstyle="steps-post")
+    ax[1].set_xlabel("Alpha")
+    ax[1].set_ylabel("Depth of tree")
+    ax[1].set_title("Depth vs Alpha")
+    ax[1].grid(True)
+    fig.tight_layout()
+    plt.show()
+    plt.clf()
+    
+    fig, ax = plt.subplots()
+    ax.set_xlabel("Alpha")
+    ax.set_ylabel("Accuracy")
+    ax.set_title("Accuracy vs alpha for training and validation sets")
+    ax.plot(ccp_alphas, train_scores, marker="o", label="train", drawstyle="steps-post")
+    ax.plot(ccp_alphas, val_scores, marker="o", label="val", drawstyle="steps-post")
+    ax.grid(True)
+    ax.legend()
+    plt.show()
+    max_val_index = np.array(val_scores).argmax()
+    model = clfs[max_val_index]
+    trained = True
+    
+elif args.section == "E":
+    ### random forests
+    model = RandomForestClassifier()
+    grid_search = True
+    
 #### GRID SEARCH
 if grid_search:
-    parameters = dict(criterion=["gini", "entropy"],
+    print("Grid Search ... \n ")
+    if args.section == "C":
+        parameters = dict(criterion=["gini", "entropy"],
                     max_depth=[None, 5, 7, 10, 15],
                     min_samples_split=[2,4,7,9])
-    GS = GridSearchCV(model, parameters, cv=5)
+    elif args.section == "E":
+        parameters = dict( n_estimators = [80,100,150,200],
+                        criterion=["gini", "entropy"],
+                        max_depth=[None, 5, 7, 10],
+                        min_samples_split=[5,7,10])
+    GS = GridSearchCV(model, parameters, cv=5, verbose=5)
     GS.fit(X_train, y_train)
     print('Best Criterion:', GS.best_estimator_.get_params()['criterion'])
     print('Best Max Depth:', GS.best_estimator_.get_params()['max_depth'])
     print('Best Min Samples Split:', GS.best_estimator_.get_params()['min_samples_split'])
+    if(args.section == "E"):
+        print('Best Number of Estimators:', GS.best_estimator_.get_params()['n_estimators'])
     model = GS.best_estimator_
     trained = True
+
 
 ### TRAINING
 if not trained:
@@ -88,6 +158,10 @@ train_pred = model.predict(X_train)
 val_pred = model.predict(X_val)
 train_acc, train_precision, train_recall = get_metrics(y_true=y_train, y_pred=train_pred)
 val_acc, val_precision, val_recall = get_metrics(y_true=y_val, y_pred=val_pred)
+
+### CONFUSION MATRIX
+if plot_confusion:
+    plot_confusion_matrix(y_true=y_train, y_pred=train_pred)
 
 ### METRICS
 print()
