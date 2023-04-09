@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import tree
+from dtree import DTree
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import GridSearchCV
@@ -51,12 +52,15 @@ plot_confusion = False
 verbose = 5
 tree_params = {
     "criterion" : "gini",
-    "max_depth" : 10,
-    "min_samples_split" : 7,
+    "max_depth" : 5,
+    "min_samples_split" : 15,
 }
 ####
+if args.section == "A":
+    print("Decision Tree implementation from scratch")
+    model = DTree(**tree_params)
 
-if args.section == "B":
+elif args.section == "B":
     ### sk-learn decision trees
     print("Sklearn Decision Trees")
     model = DecisionTreeClassifier(**tree_params)
