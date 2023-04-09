@@ -1,13 +1,16 @@
+import os
 import time
 import argparse
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import tree
+from xgboost import XGBClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import SelectFromModel
-from sklearn.ensemble import RandomForestClassifier
-from utilities import read_data, get_metrics
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from utilities import read_data, get_metrics, plot_confusion_matrix, read_test_data
 
 parser = argparse.ArgumentParser(
                     prog = 'Decision Trees and Random Forests',
@@ -22,20 +25,28 @@ parser.add_argument("--section", action="store", type=str, required=False, defau
 
 args = parser.parse_args()
 
+
+## create output directory
+output_dir =  os.path.split(args.out_path)[0]
+if not os.path.isdir(output_dir):
+    os.makedirs(output_dir)
+    
 X_train, y_train = read_data(args.train_path)
 X_val, y_val = read_data(args.val_path)
+X_test, test_filenames = read_test_data(args.test_path)
 
 print(f"Training Data: {X_train.shape}")
 print(f"Valdiation Data: {X_val.shape}")
+
 
 #### params
 visualization = False
 grid_search = False
 trained = False
-plot_confusion = False
+plot_confusion = True
 average = "macro" ### for precision and recall
 max_features = 10 ### for feature selection
-verbose = 1
+verbose = 5
 tree_params = {
     "criterion" : "gini",
     "max_depth" : 10,
@@ -118,6 +129,13 @@ elif args.section == "D":
     print("Random Forests")
     model = RandomForestClassifier()
     grid_search = True
+    
+elif args.section == "E":
+    print("Gradient boosted Trees and XGBoost ... ")
+    model = GradientBoostingClassifier()
+    # model = XGBClassifier()
+    grid_search = True
+    
 ### GRID SEARCH
 if grid_search:
     print("Performing Grid Search ... ")
@@ -132,13 +150,28 @@ if grid_search:
                         criterion=["gini", "entropy"],
                         max_depth=[None, 5, 7, 10],
                         min_samples_split=[5,7,10])
+    elif args.section == "E":
+        ### gradient boosting
+        # parameters = dict( n_estimators = [20,30,40,50], 
+        #                    subsample = [0.2, 0.3, 0.4, 0.5, 0.6],
+        #                    max_depth = [5,6,7,8,9,10])
+        parameters = dict( n_estimators = [20,30], 
+                           subsample = [0.2],
+                           max_depth = [5])
+        
     GS = GridSearchCV(model, parameters, cv=5, verbose=verbose)
     GS.fit(X_train, y_train)
-    print('Best Criterion:', GS.best_estimator_.get_params()['criterion'])
-    print('Best Max Depth:', GS.best_estimator_.get_params()['max_depth'])
-    print('Best Min Samples Split:', GS.best_estimator_.get_params()['min_samples_split'])
-    if(args.section == "D"):
+    if(args.section == "B" or args.section == "D"):
+        print('Best Criterion:', GS.best_estimator_.get_params()['criterion'])
+        print('Best Max Depth:', GS.best_estimator_.get_params()['max_depth'])
+        print('Best Min Samples Split:', GS.best_estimator_.get_params()['min_samples_split'])
+        if(args.section == "D"):
+            print('Best Number of Estimators:', GS.best_estimator_.get_params()['n_estimators'])
+    elif(args.section == "E"):
         print('Best Number of Estimators:', GS.best_estimator_.get_params()['n_estimators'])
+        print('Best Max Depth:', GS.best_estimator_.get_params()['max_depth'])
+        print('Best Subsample: ', GS.best_estimator_.get_params()['subsample'])
+        
     model = GS.best_estimator_  ### best learnt parameters
     trained = True
 
@@ -162,8 +195,23 @@ print()
 print(f"Training Metrics   | Accuracy: {train_acc:.4f}% | {average} Precision: {train_precision:.4f} | {average} Recall: {train_recall:.4f}")
 print(f"Validation Metrics | Accuracy: {val_acc:.4f}% | {average} Precision: {val_precision:.4f} | {average} Recall: {val_recall:.4f}")
 
+### CONFUSION MATRIX
+if plot_confusion:
+    plot_confusion_matrix(y_true=y_train, y_pred=train_pred, labels = ["Cars", "Faces", "Ariplanes", "Dogs"])
+    
 ### TREE VISUALIZATION
 if visualization:
     plt.figure(figsize=(12,8))
     _ = tree.plot_tree(model, filled=True)
     plt.show()
+    
+### TESTING
+test_pred = model.predict(X_test)
+test_labels = [f"{test_filename.split('.')[0]}," for test_filename in test_filenames]
+df = pd.DataFrame(data={
+    "labels" : test_labels,
+    "pred" : test_pred.tolist()
+})
+if ".csv" not in args.out_path:
+    args.out_path = os.path.join(args.out_path, "out.csv")
+df.to_csv(args.out_path, header=False, index=False, sep=" ")

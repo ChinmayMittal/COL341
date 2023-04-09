@@ -1,0 +1,128 @@
+Binary Linear SVM
+    Train Accuracy: 99.25093632958801%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 97.75280898876404%, Val Accuracy: 94.87179487179486%
+    Train Accuracy: 99.625468164794%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 92.3076923076923%
+Binary RBF
+    gamma 0.1
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 100.0%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 100.0%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 100.0%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 100.0%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 100.0%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 100.0%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 100.0%, Val Accuracy: 53.84615384615385%
+    gamma 0.01
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    gamma 0.001
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 61.42322097378277%, Val Accuracy: 53.84615384615385%
+    Train Accuracy: 92.50936329588015%, Val Accuracy: 92.3076923076923%
+    Train Accuracy: 98.50187265917603%, Val Accuracy: 89.74358974358975%
+    Train Accuracy: 100.0%, Val Accuracy: 89.74358974358975%
+    Train Accuracy: 100.0%, Val Accuracy: 89.74358974358975%
+    Train Accuracy: 100.0%, Val Accuracy: 89.74358974358975%
+    Train Accuracy: 100.0%, Val Accuracy: 89.74358974358975%
+    Train Accuracy: 100.0%, Val Accuracy: 89.74358974358975%
+    Train Accuracy: 100.0%, Val Accuracy: 89.74358974358975%
+One vs One
+    RBF 
+    gamma 0.1
+    Train Accuracy: 19.475655430711612%, Val Accuracy: 15.384615384615385%
+    Train Accuracy: 19.475655430711612%, Val Accuracy: 15.384615384615385%
+    Train Accuracy: 19.475655430711612%, Val Accuracy: 15.384615384615385%
+    Train Accuracy: 26.96629213483146%, Val Accuracy: 23.076923076923077%
+    Train Accuracy: 96.62921348314607%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 100.0%, Val Accuracy: 66.66666666666666%
+    Train Accuracy: 100.0%, Val Accuracy: 66.66666666666666%
+    Train Accuracy: 100.0%, Val Accuracy: 66.66666666666666%
+    Train Accuracy: 100.0%, Val Accuracy: 66.66666666666666%
+    Train Accuracy: 100.0%, Val Accuracy: 66.66666666666666%
+    Train Accuracy: 100.0%, Val Accuracy: 66.66666666666666%
+    gamma 0.01
+    Train Accuracy: 19.475655430711612%, Val Accuracy: 15.384615384615385%
+    Train Accuracy: 19.475655430711612%, Val Accuracy: 15.384615384615385%
+    Train Accuracy: 19.475655430711612%, Val Accuracy: 15.384615384615385%
+    Train Accuracy: 61.79775280898876%, Val Accuracy: 56.41025641025641%
+    Train Accuracy: 80.52434456928839%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 95.88014981273409%, Val Accuracy: 76.92307692307693%
+    Train Accuracy: 99.25093632958801%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 100.0%, Val Accuracy: 79.48717948717949%
+    gamma 0.001
+    Train Accuracy: 4.868913857677903%, Val Accuracy: 5.128205128205128%
+    Train Accuracy: 4.868913857677903%, Val Accuracy: 5.128205128205128%
+    Train Accuracy: 4.868913857677903%, Val Accuracy: 5.128205128205128%
+    Train Accuracy: 22.47191011235955%, Val Accuracy: 25.64102564102564%
+    Train Accuracy: 60.67415730337079%, Val Accuracy: 56.41025641025641%
+    Train Accuracy: 80.14981273408239%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 82.77153558052434%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 84.26966292134831%, Val Accuracy: 82.05128205128204%
+    Train Accuracy: 88.76404494382022%, Val Accuracy: 82.05128205128204%
+    Train Accuracy: 91.01123595505618%, Val Accuracy: 79.48717948717949%
+    Train Accuracy: 94.7565543071161%, Val Accuracy: 79.48717948717949%
+One vs All
+    gamma 0.1
+    Train Accuracy: 90.63670411985018%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 90.63670411985018%, Val Accuracy: 66.66666666666666%
+    Train Accuracy: 90.63670411985018%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 90.63670411985018%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 98.87640449438202%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 100.0%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 100.0%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 100.0%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 100.0%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 100.0%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 100.0%, Val Accuracy: 74.35897435897436%
+    gamma 0.01
+    Train Accuracy: 71.53558052434457%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 71.53558052434457%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 71.53558052434457%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 71.53558052434457%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 77.52808988764045%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 96.25468164794007%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 98.50187265917603%, Val Accuracy: 76.92307692307693%
+    Train Accuracy: 100.0%, Val Accuracy: 71.7948717948718%
+    Train Accuracy: 100.0%, Val Accuracy: 71.7948717948718%
+    Train Accuracy: 100.0%, Val Accuracy: 71.7948717948718%
+    Train Accuracy: 100.0%, Val Accuracy: 71.7948717948718%
+    gamma 0.001
+    Train Accuracy: 73.78277153558052%, Val Accuracy: 64.1025641025641%
+    Train Accuracy: 69.66292134831461%, Val Accuracy: 58.97435897435898%
+    Train Accuracy: 73.78277153558052%, Val Accuracy: 64.1025641025641%
+    Train Accuracy: 73.78277153558052%, Val Accuracy: 64.1025641025641%
+    Train Accuracy: 73.78277153558052%, Val Accuracy: 64.1025641025641%
+    Train Accuracy: 76.40449438202246%, Val Accuracy: 66.66666666666666%
+    Train Accuracy: 78.65168539325843%, Val Accuracy: 69.23076923076923%
+    Train Accuracy: 83.52059925093633%, Val Accuracy: 76.92307692307693%
+    Train Accuracy: 86.51685393258427%, Val Accuracy: 76.92307692307693%
+    Train Accuracy: 91.01123595505618%, Val Accuracy: 74.35897435897436%
+    Train Accuracy: 93.63295880149812%, Val Accuracy: 71.7948717948718%
+
+one vs one
+    best values
+    Train Accuracy: 100.0%, Val Accuracy: 84.61538461538461%, gamma: 0.01, C: 10.0 laplacian kernel
