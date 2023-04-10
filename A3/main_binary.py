@@ -51,7 +51,7 @@ trained = False
 plot_confusion = False
 verbose = 5
 tree_params = {
-    "criterion" : "gini",
+    "criterion" : "entropy",
     "max_depth" : 5,
     "min_samples_split" : 15,
 }
