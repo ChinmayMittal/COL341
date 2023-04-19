@@ -1,0 +1,112 @@
+
+Feature Selection ...  tree with 10 best features
+Number of Features Selected: 10
+Training Time Section: C Time: 6.7500 ms
+
+Training Metrics   | Accuracy: 100.0000% | Precision: 1.0000 | Recall: 1.0000
+Validation Metrics | Accuracy: 93.5000% | Precision: 0.8854 | Recall: 0.8500
+
+--grid search over 10 features
+
+Grid Search Time Section: C Time: 998.7954 ms
+Best Criterion: entropy
+Best Max Depth: None
+Best Min Samples Split: 4
+
+Training Metrics   | Accuracy: 99.8500% | Precision: 0.9960 | Recall: 0.9980
+Validation Metrics | Accuracy: 95.0000% | Precision: 0.8922 | Recall: 0.9100
+
+--- multi
+-- grid search 
+Grid Search Time Section: B Time: 1689.0398 ms
+Best Criterion: gini
+Best Max Depth: 7
+Best Min Samples Split: 9
+-- Time taken to train best tree => 2087 ms
+Training Metrics   | Accuracy: 83.1500% | macro Precision: 0.8398 | macro Recall: 0.8315
+Validation Metrics | Accuracy: 72.2500% | macro Precision: 0.7261 | macro Recall: 0.7225
+
+-- binary 
+-- random forests
+-- default parameters
+Random Forests ... 
+Training Time Section: E Time: 2998.3347 ms
+
+Training Metrics   | Accuracy: 100.0000% | Precision: 1.0000 | Recall: 1.0000
+Validation Metrics | Accuracy: 97.5000% | Precision: 1.0000 | Recall: 0.9000
+
+-- grid Search
+Grid Search Time Section: E Time: 1248423.0531 ms
+Best Criterion: entropy
+Best Max Depth: None
+Best Min Samples Split: 5
+Best Number of Estimators: 100
+Training Time Section: E Time: 2415.9523 ms
+
+Training Metrics   | Accuracy: 100.0000% | Precision: 1.0000 | Recall: 1.0000
+Validation Metrics | Accuracy: 98.2500% | Precision: 1.0000  | Recall: 0.9300
+
+
+-- multi 
+-- default parameters
+Random Forests
+Training Time Section: D Time: 3807.6781 ms
+
+Training Metrics   | Accuracy: 100.0000% | macro Precision: 1.0000 | macro Recall: 1.0000
+Validation Metrics | Accuracy: 87.7500% | macro Precision: 0.8808 | macro Recall: 0.8775
+
+-- grid search 
+Grid Search Time Section: D Time: 1814830.5117 ms
+Best Criterion: entropy
+Best Max Depth: 10
+Best Min Samples Split: 5
+Best Number of Estimators: 100
+Training Time Section: D Time: 4640.4575 ms
+
+Training Metrics   | Accuracy: 100.0000% | macro Precision: 1.0000 | macro Recall: 1.0000
+Validation Metrics | Accuracy: 87.2500% | macro Precision: 0.8737 | macro Recall: 0.8725
+
+-- gradient boosting and xgboost
+--binary
+
+    -- gradient boosting grid search 
+        Grid Search Time Section: F Time: 3535785.3865 ms
+        Best Number of Estimators: 50
+        Best Max Depth: 5
+        Best Subsample:  0.6
+        Training Time Section: F Time: 43263.7758 ms
+
+        Training Metrics   | Accuracy: 100.0000% | Precision: 1.0000 | Recall: 1.0000
+        Validation Metrics | Accuracy: 97.5000% | Precision: 0.9891 | Recall: 0.9100
+
+    -- xgboost grid search 
+        Grid Search Time Section: F Time: 1316313.8119 ms
+        Best Number of Estimators: 50
+        Best Max Depth: 5
+        Best Subsample:  0.5
+        Training Time Section: F Time: 3766.9145 ms
+
+        Training Metrics   | Accuracy: 100.0000% | Precision: 1.0000 | Recall: 1.0000
+        Validation Metrics | Accuracy: 98.7500% | Precision: 0.9897 | Recall: 0.9600
+
+-- multi 
+
+    -- gradient boosting grid search 
+        Grid Search Time Section: E Time: 13178197.0151 ms
+        Best Number of Estimators: 50
+        Best Max Depth: 6
+        Best Subsample:  0.6
+        Training Time Section: E Time: 200850.1095 ms
+
+        Training Metrics   | Accuracy: 100.0000% | macro Precision: 1.0000 | macro Recall: 1.0000
+        Validation Metrics | Accuracy: 88.5000% | macro Precision: 0.8855 | macro Recall: 0.8850
+
+    -- xgboost grid search 
+        Grid Search Time Section: E Time: 5517561.4443 ms
+        Best Number of Estimators: 50
+        Best Max Depth: 5
+        Best Subsample:  0.6
+        Training Time Section: E Time: 15778.0612 ms
+
+        Training Metrics   | Accuracy: 100.0000% | macro Precision: 1.0000 | macro Recall: 1.0000
+        Validation Metrics | Accuracy: 90.0000% | macro Precision: 0.9011 | macro Recall: 0.9000

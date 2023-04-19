@@ -57,17 +57,18 @@ tree_params = {
 if args.section == "A":
     ### sk-learn decision trees
     print("Sklearn Decision Trees")
-    model = DecisionTreeClassifier(**tree_params)
+    model = DecisionTreeClassifier(**tree_params, random_state=31)
 elif args.section == "B":
     print("Feature Selection, Grid Search and Visualization ...")
     ### feature selection
-    clf = DecisionTreeClassifier()
+    clf = DecisionTreeClassifier(random_state=0)
     feature_selector = SelectFromModel(clf, max_features=max_features)
     feature_selector.fit(X_train, y_train)
     selected_features = feature_selector.get_support()
     X_train = X_train[:, selected_features] ### reduced feature set
     X_val = X_val[:, selected_features]
-    model = DecisionTreeClassifier()
+    X_test = X_test[:, selected_features]
+    model = DecisionTreeClassifier(random_state=0)
     print(f"Number of Features Selected: {np.sum(selected_features)}")
     visualization = True
     grid_search = True
@@ -77,11 +78,13 @@ elif args.section == "C":
     model = DecisionTreeClassifier(random_state=0)
     path = model.cost_complexity_pruning_path(X_train, y_train)
     ccp_alphas, impurities = path.ccp_alphas, path.impurities
-    fig, ax = plt.subplots(figsize=(12,6))
-    ax.plot(ccp_alphas[:-1], impurities[:-1], marker="o", drawstyle="steps-post", color="red")
+    fig, ax = plt.subplots(figsize=(18,6))
+    vfunc = np.vectorize(lambda x : round(x,5))
+    ax.plot(vfunc(ccp_alphas[:-1]).astype("str"), impurities[:-1], marker="o", drawstyle="steps-post", color="red")
     ax.set_xlabel("Effective alpha")
     ax.set_ylabel("Total impurity of leaves")
     ax.set_title("Total Impurity vs Effective alpha for Training set")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=75)
     plt.grid(True)
     plt.show()
     plt.clf()
@@ -98,26 +101,29 @@ elif args.section == "C":
     val_scores = [clf.score(X_val, y_val) for clf in clfs]
     
     fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(12,6))
-    ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")
+    ax[0].plot(vfunc(ccp_alphas).astype("str"), node_counts, marker="o", drawstyle="steps-post")
     ax[0].set_xlabel("Alpha")
     ax[0].set_ylabel("Number of nodes")
     ax[0].set_title("Number of nodes vs Alpha")
     ax[0].grid(True)
-    ax[1].plot(ccp_alphas, depths, marker="o", drawstyle="steps-post")
+    ax[0].set_xticklabels(ax[0].get_xticklabels(), rotation=75)
+    ax[1].plot(vfunc(ccp_alphas).astype("str"), depths, marker="o", drawstyle="steps-post")
     ax[1].set_xlabel("Alpha")
     ax[1].set_ylabel("Depth of tree")
     ax[1].set_title("Depth vs Alpha")
     ax[1].grid(True)
+    ax[1].set_xticklabels(ax[1].get_xticklabels(), rotation=75)
     fig.tight_layout()
     plt.show()
     plt.clf()
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(14,8))
     ax.set_xlabel("Alpha")
     ax.set_ylabel("Accuracy")
     ax.set_title("Accuracy vs alpha for training and validation sets")
-    ax.plot(ccp_alphas, train_scores, marker="o", label="train", drawstyle="steps-post")
-    ax.plot(ccp_alphas, val_scores, marker="o", label="val", drawstyle="steps-post")
+    ax.plot(vfunc(ccp_alphas).astype("str"), train_scores, marker="o", label="train", drawstyle="steps-post")
+    ax.plot(vfunc(ccp_alphas).astype("str"), val_scores, marker="o", label="val", drawstyle="steps-post")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=75)
     ax.grid(True)
     ax.legend()
     plt.show()
@@ -127,13 +133,13 @@ elif args.section == "C":
 
 elif args.section == "D":
     print("Random Forests")
-    model = RandomForestClassifier()
+    model = RandomForestClassifier(random_state=0)
     grid_search = True
     
 elif args.section == "E":
     print("Gradient boosted Trees and XGBoost ... ")
-    model = GradientBoostingClassifier()
-    # model = XGBClassifier()
+    model = GradientBoostingClassifier(random_state=0)
+    # model = XGBClassifier(random_state=0)
     grid_search = True
     
 ### GRID SEARCH
@@ -152,15 +158,20 @@ if grid_search:
                         min_samples_split=[5,7,10])
     elif args.section == "E":
         ### gradient boosting
-        # parameters = dict( n_estimators = [20,30,40,50], 
-        #                    subsample = [0.2, 0.3, 0.4, 0.5, 0.6],
-        #                    max_depth = [5,6,7,8,9,10])
-        parameters = dict( n_estimators = [20,30], 
-                           subsample = [0.2],
-                           max_depth = [5])
+        parameters = dict( n_estimators = [20,30,40,50], 
+                           subsample = [0.2, 0.3, 0.4, 0.5, 0.6],
+                           max_depth = [5,6,7,8,9,10])
+        # parameters = dict( n_estimators = [20,30], 
+        #                    subsample = [0.2],
+        #                    max_depth = [5])
         
-    GS = GridSearchCV(model, parameters, cv=5, verbose=verbose)
+    GS = GridSearchCV(model, parameters, cv=5, verbose=verbose, n_jobs=-1)
+    gs_start_time = time.perf_counter()
     GS.fit(X_train, y_train)
+    gs_end_time = time.perf_counter()
+    gs_time_taken_ms = (gs_end_time - gs_start_time) * 1000
+    print(f"Grid Search Time Section: {args.section} Time: {gs_time_taken_ms:.4f} ms")
+    
     if(args.section == "B" or args.section == "D"):
         print('Best Criterion:', GS.best_estimator_.get_params()['criterion'])
         print('Best Max Depth:', GS.best_estimator_.get_params()['max_depth'])
@@ -173,7 +184,7 @@ if grid_search:
         print('Best Subsample: ', GS.best_estimator_.get_params()['subsample'])
         
     model = GS.best_estimator_  ### best learnt parameters
-    trained = True
+    trained = False
 
 
 ### TRAINING
@@ -197,12 +208,14 @@ print(f"Validation Metrics | Accuracy: {val_acc:.4f}% | {average} Precision: {va
 
 ### CONFUSION MATRIX
 if plot_confusion:
-    plot_confusion_matrix(y_true=y_train, y_pred=train_pred, labels = ["Cars", "Faces", "Ariplanes", "Dogs"])
-    
+    plot_confusion_matrix(y_true=y_train, y_pred=train_pred, labels = ["Cars", "Faces", "Ariplanes", "Dogs"], title=f"Train Confustion Matrix Multi Section: {args.section}")
+    plot_confusion_matrix(y_true=y_val, y_pred=val_pred, labels = ["Cars", "Faces", "Ariplanes", "Dogs"], title=f"Validation Confusion Matrix Multi Section: {args.section}")
+
 ### TREE VISUALIZATION
 if visualization:
-    plt.figure(figsize=(12,8))
-    _ = tree.plot_tree(model, filled=True)
+    plt.figure(figsize=(16,8))
+    _ = tree.plot_tree(model, filled=True, fontsize=3)
+    plt.savefig("tree", dpi=100)
     plt.show()
     
 ### TESTING

@@ -59,11 +59,13 @@ def get_metrics(y_true, y_pred, average="binary"):
     ### accuracy, precision, recall
     return get_accuracy(y_true, y_pred), precision_score(y_true, y_pred, average=average), recall_score(y_true, y_pred, average=average)        
     
-def plot_confusion_matrix(y_true, y_pred, labels):
+def plot_confusion_matrix(y_true, y_pred, labels, title=None):
     cf = confusion_matrix(y_true.astype(np.int32), y_pred.astype(np.int32))
     confusion_df = pd.DataFrame(cf, index = labels, columns= labels)
     plt.figure(figsize=(7,7))
     sns.heatmap(confusion_df, annot=True, fmt=".0f", cmap="Blues")
     plt.ylabel("True Label")
     plt.xlabel("Prediction Label")
+    if title is not None:
+        plt.title(title)
     plt.show()

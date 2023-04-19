@@ -48,12 +48,12 @@ print(f"Test Data: {X_test.shape}")
 visualization = False
 grid_search = False
 trained = False
-plot_confusion = False
-verbose = 5
+plot_confusion = True
+verbose = 2
 tree_params = {
     "criterion" : "entropy",
-    "max_depth" : 5,
-    "min_samples_split" : 15,
+    "max_depth" : 10,
+    "min_samples_split" : 7,
 }
 ####
 if args.section == "A":
@@ -63,32 +63,37 @@ if args.section == "A":
 elif args.section == "B":
     ### sk-learn decision trees
     print("Sklearn Decision Trees")
-    model = DecisionTreeClassifier(**tree_params)
+    model = DecisionTreeClassifier(**tree_params, random_state=31)
     
 
 elif args.section == "C":
 
     ### feature selection
-    clf = DecisionTreeClassifier()
+    print("Feature Selection ... ")
+    clf = DecisionTreeClassifier(random_state=0)
     feature_selector = SelectFromModel(clf, max_features=10)
     feature_selector.fit(X_train, y_train)
     selected_features = feature_selector.get_support()
     X_train = X_train[:, selected_features]
     X_val = X_val[:, selected_features]
-    model = DecisionTreeClassifier()
+    X_test = X_test[:, selected_features]
+    model = DecisionTreeClassifier(random_state=0)
     print(f"Number of Features Selected: {np.sum(selected_features)}")
     visualization = True
     grid_search = True
 
 elif args.section == "D":
+    print("Cost Complexity Pruning ... ")
     model = DecisionTreeClassifier(random_state=0)
     path = model.cost_complexity_pruning_path(X_train, y_train)
     ccp_alphas, impurities = path.ccp_alphas, path.impurities
-    fig, ax = plt.subplots(figsize=(12,6))
-    ax.plot(ccp_alphas[:-1], impurities[:-1], marker="o", drawstyle="steps-post", color="red")
+    fig, ax = plt.subplots(figsize=(18,8))
+    vfunc = np.vectorize(lambda x : round(x,5))
+    ax.plot(vfunc(ccp_alphas[:-1]).astype("str"), impurities[:-1], marker="o", drawstyle="steps-post", color="red")
     ax.set_xlabel("Effective alpha")
     ax.set_ylabel("Total impurity of leaves")
     ax.set_title("Total Impurity vs Effective alpha for Training set")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=60)
     plt.grid(True)
     plt.show()
     plt.clf()
@@ -105,26 +110,29 @@ elif args.section == "D":
     val_scores = [clf.score(X_val, y_val) for clf in clfs]
     
     fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(12,6))
-    ax[0].plot(ccp_alphas, node_counts, marker="o", drawstyle="steps-post")
+    ax[0].plot(vfunc(ccp_alphas).astype("str"), node_counts, marker="o", drawstyle="steps-post")
     ax[0].set_xlabel("Alpha")
     ax[0].set_ylabel("Number of nodes")
     ax[0].set_title("Number of nodes vs Alpha")
     ax[0].grid(True)
-    ax[1].plot(ccp_alphas, depths, marker="o", drawstyle="steps-post")
+    ax[0].set_xticklabels(ax[0].get_xticklabels(), rotation=60)
+    ax[1].plot(vfunc(ccp_alphas).astype("str"), depths, marker="o", drawstyle="steps-post")
     ax[1].set_xlabel("Alpha")
     ax[1].set_ylabel("Depth of tree")
     ax[1].set_title("Depth vs Alpha")
     ax[1].grid(True)
+    ax[1].set_xticklabels(ax[1].get_xticklabels(), rotation=60)
     fig.tight_layout()
     plt.show()
     plt.clf()
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12,6))
     ax.set_xlabel("Alpha")
     ax.set_ylabel("Accuracy")
     ax.set_title("Accuracy vs alpha for training and validation sets")
-    ax.plot(ccp_alphas, train_scores, marker="o", label="train", drawstyle="steps-post")
-    ax.plot(ccp_alphas, val_scores, marker="o", label="val", drawstyle="steps-post")
+    ax.plot(vfunc(ccp_alphas).astype("str"), train_scores, marker="o", label="train", drawstyle="steps-post")
+    ax.plot(vfunc(ccp_alphas).astype("str"), val_scores, marker="o", label="val", drawstyle="steps-post")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=60)
     ax.grid(True)
     ax.legend()
     plt.show()
@@ -134,13 +142,14 @@ elif args.section == "D":
     
 elif args.section == "E":
     ### random forests
-    model = RandomForestClassifier()
+    print("Random Forests ... ")
+    model = RandomForestClassifier(random_state=0)
     grid_search = True
     
 elif args.section == "F":
     print("Gradient Boosted Trees and XGBoost ... ")
-    model = GradientBoostingClassifier()
-    # model = XGBClassifier()
+    # model = GradientBoostingClassifier(random_state=0)
+    model = XGBClassifier(random_state=0)
     grid_search = True
     
 #### GRID SEARCH
@@ -159,16 +168,21 @@ if grid_search:
                         min_samples_split=[5,7,10])
     elif args.section == "F":
         ### gradient boosting
-        # parameters = dict( n_estimators = [20,30,40,50], 
-        #                    subsample = [0.2, 0.3, 0.4, 0.5, 0.6],
-        #                    max_depth = [5,6,7,8,9,10])
-        parameters = dict( n_estimators = [20,30], 
-                           subsample = [0.2, 0.3],
-                           max_depth = [5,6,])
+        parameters = dict( n_estimators = [20,30,40,50], 
+                           subsample = [0.2, 0.3, 0.4, 0.5, 0.6],
+                           max_depth = [5,6,7,8,9,10])
+        # parameters = dict( n_estimators = [30], 
+        #                    subsample = [0.3],
+        #                    max_depth = [5])
         
         
-    GS = GridSearchCV(model, parameters, cv=5, verbose=verbose)
+    GS = GridSearchCV(model, parameters, cv=5, verbose=verbose, n_jobs=-1)
+    gs_start_time = time.perf_counter()
     GS.fit(X_train, y_train)
+    gs_end_time = time.perf_counter()
+    gs_time_taken_ms = (gs_end_time - gs_start_time) * 1000
+    print(f"Grid Search Time Section: {args.section} Time: {gs_time_taken_ms:.4f} ms")
+
     if(args.section == "C" or args.section == "E"):
         print('Best Criterion:', GS.best_estimator_.get_params()['criterion'])
         print('Best Max Depth:', GS.best_estimator_.get_params()['max_depth'])
@@ -181,7 +195,7 @@ if grid_search:
         print('Best Subsample: ', GS.best_estimator_.get_params()['subsample'])
         
     model = GS.best_estimator_
-    trained = True
+    trained = False
 
 
 ### TRAINING
@@ -206,13 +220,14 @@ print(f"Validation Metrics | Accuracy: {val_acc:.4f}% | Precision: {val_precisio
 
 ### CONFUSION MATRIX
 if plot_confusion:
-    plot_confusion_matrix(y_true=y_train, y_pred=train_pred, labels = ["Not Face", "Face"])
+    plot_confusion_matrix(y_true=y_train, y_pred=train_pred, labels = ["Not Face", "Face"], title=f"Train Confustion Matrix Binary Section: {args.section}")
+    plot_confusion_matrix(y_true=y_val, y_pred=val_pred, labels = ["Not Face", "Face"], title=f"Validation Confusion Matrix Binary Section: {args.section}")
 
 
 #### TREE VISUALIZATION
 if visualization:
     plt.figure(figsize=(12,8))
-    _ = tree.plot_tree(model, filled=True)
+    _ = tree.plot_tree(model, filled=True, fontsize=3)
     plt.show()
 
 ### TESTING
