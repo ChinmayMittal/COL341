@@ -2,6 +2,7 @@ import numpy as np
 from constants import classes
 from data import Dataset
 from cnn import CNN
+from tqdm import tqdm
 
 ### PARAMS
 BATCH_SIZE = 16
@@ -11,12 +12,12 @@ NUM_EPOCHS = 100
 PRINT_INTERVAL = 2000
 SMOOTHING_FACTOR = 0.9
 
-dataset = Dataset("./data/cifar-10-batches-py")
+dataset = Dataset("./data/cifar-10-batches-py", sample_interval=50)
 model = CNN(NUM_CLASSES=NUM_CLASSES)
 
 for epoch in range(NUM_EPOCHS):
     ## TRAINING
-    for batch_idx in range(dataset.num_train_batches):
+    for batch_idx in tqdm(range(dataset.num_train_batches)):
         X, y = dataset.train_batch(batch_idx)
         batch_size = X.shape[0]
         one_hot = np.zeros((y.shape[0], NUM_CLASSES))
@@ -27,13 +28,23 @@ for epoch in range(NUM_EPOCHS):
         del_prob /= batch_size
         model.backward(del_prob)
         model.update_weights(lr=LEARNING_RATE)
-    
-    ## TESTING
-    correct = 0
-    for batch_idx in range(dataset.num_test_batches):
+
+    ## TRAINING ACC
+    print("FINDING TRAINING ACC ... ")
+    train_correct = 0
+    for batch_idx in tqdm(range(dataset.num_train_batches)):
         X, y = dataset.train_batch(batch_idx)
         batch_size = X.shape[0]
         prob = model.forward(X)
-        correct += np.sum(np.argmax(prob, axis=1) == y)
-    print(f"Validation Accuracy: {correct/dataset.num_test_samples*100:.2f} %")
+        train_correct += np.sum(np.argmax(prob, axis=1) == y)
+            
+    ## TESTING ACC
+    print("TESTING ... ")
+    test_correct = 0
+    for batch_idx in tqdm(range(dataset.num_test_batches)):
+        X, y = dataset.test_batch(batch_idx)
+        batch_size = X.shape[0]
+        prob = model.forward(X)
+        test_correct += np.sum(np.argmax(prob, axis=1) == y)
+    print(f"Train Accuracy: {train_correct/dataset.num_train_samples*100:.2f}% ||| Validation Accuracy: {test_correct/dataset.num_test_samples*100:.2f} %")
     

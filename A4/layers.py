@@ -55,3 +55,114 @@ class SoftMax:
             self.ans[sample_idx] =  np.matmul(delY[sample_idx, :].reshape(1, -1), A).reshape(-1)
         return self.ans
         
+class Flatten():
+    def __init__(self):
+        pass
+    def forward(self, X):
+        ## X => B * C * H * W
+        ## Y => B * (C*H*W)
+        self.cache = X.shape
+        return X.reshape((X.shape[0], -1)) 
+    def backward(self, delY):
+        ## delY => B * (C*H*W) || delX => B * C * H * W 
+        return delY.reshape(self.cache)
+    
+class MaxPool2D():
+    
+    def __init__(self, kernel_size=2, stride=2):
+        self.kernel_size = kernel_size
+        self.stride = stride
+        
+    def forward(self, X):
+        ## X ==> N * C * H * W
+        (N, C_in, H_in, W_in) = X.shape
+        self.cache = X
+        C_out, H_out, W_out = C_in, (H_in-self.kernel_size)//self.stride + 1, (W_in-self.kernel_size)//self.stride+1
+        output = np.zeros((N, C_out, H_out, W_out))
+        ### iterating over the output axises
+        for channel in range(C_out):
+            for h in range(H_out):
+                for w in range(W_out):
+                    ### input to consider
+                    h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
+                    w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
+                    input_slice = X[:, channel, h_start:h_end, w_start:w_end] ## B * kernel_size * kernel_size
+                    output[:, channel, h, w] = np.max(input_slice.reshape(N, -1), axis=1)
+                    
+        return output
+    
+    def backward(self, delY):
+        ## delY => N * C * H_out * W_out ||| delX => N * C * H_in * W_in
+        (N, C_out, H_out, W_out) = delY.shape
+        output = np.zeros(self.cache.shape) ## shape of input to this layer
+        ## iterating over the output
+        for channel in range(C_out):
+            for h in range(H_out):
+                for w in range(W_out):
+                    ### input to consider
+                    h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
+                    w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
+                    input_slice = self.cache[:, channel, h_start:h_end, w_start:w_end] ## input which computed this output ||| B * K * K 
+                    max_value = np.max(input_slice.reshape(N, -1), axis=1) ### B, max_value per batch in this window
+                    ## [TODO] What if multiple max values exist ?
+                    max_mask = ( input_slice == max_value.reshape((-1, 1, 1)))  ### B * K * K ### mask indicating presence of max value
+                    output[:, channel, h_start:h_end, w_start:w_end] = max_mask.astype(np.int32) * delY[:, channel, h, w].reshape((-1, 1, 1))  ### B * K * K
+        return output
+    
+    
+class Conv2D():
+    
+    def __init__(self, kernel_size, stride, in_channels, num_filters):
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.in_channels = in_channels
+        self.num_filters = num_filters
+        self.W = np.random.uniform(low=-0.1, high=+0.1, size=(num_filters, in_channels, kernel_size, kernel_size)) ### C_out * C_in * K * K
+        self.b = np.zeros(shape=(num_filters,)) ## C_out, ||| one bias per output filter
+    
+    def forward(self, X):
+        ### X => N * C * H * W
+        self.cache = X
+        (N, C_in, H_in, W_in) = X.shape
+        C_out, H_out, W_out = self.num_filters, (H_in-self.kernel_size)//self.stride + 1, (W_in-self.kernel_size)//self.stride+1
+        output = np.zeros(shape=(N, C_out, H_out, W_out))
+        ### iterating over the output
+        for c in range(C_out):
+            for h in range(H_out):
+                for w in range(W_out):
+                    ### input to consider
+                    h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
+                    w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
+                    input_slice = X[:, :, h_start:h_end, w_start:w_end] ## B * C_in * K * K
+                                        ### C_in * K * K              B * C_in * K * K
+                    output[:, c, h, w] = np.sum( (self.W[c, :, :, :] * input_slice).reshape(N, -1), axis=1) + self.b[c] ## B,
+                    
+        return output
+    
+    
+    def backward(self, delY):
+        ### delY => N * C_out *  H_out * W_out
+        (N, C_out, H_out, W_out) = delY.shape
+        output = np.zeros(self.cache.shape) ### delX
+                        ### shift the C_out to the zeroth axis 
+        self.W_grad = np.zeros(shape=self.W.shape) ### C_out * C_in * K * K
+        self.b_grad = np.sum(np.moveaxis(delY, source=1, destination=0).reshape(C_out, -1), axis=1) ### for each channel sum all the gradient values
+        for c in range(C_out):
+            for h in range(H_out):
+                for w in range(W_out):
+                    ### input to consider
+                    h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
+                    w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
+                    input_slice = self.cache[:, :, h_start:h_end, w_start:w_end] ## B * C_in * K * K
+                    ## C_in * K * K            B * C_in * K * K  ||| B, 
+                    self.W_grad[c, :, :, :] += np.sum(input_slice * (delY[:, c, h, w].reshape(N, 1, 1, 1)), axis=0)
+                    ## B * C_in * K * K                               1 * C_in * K * K  ||| B, 1, 1, 1
+                    output[:, :, h_start:h_end, w_start:w_end] = np.expand_dims(self.W[c, :, :, :], axis=0) * delY[:, c, h, w].reshape(N, 1, 1, 1)
+        
+        return output
+    
+    def update(self, lr):
+        self.W -= lr * self.W_grad
+        self.b -= lr * self.b_grad
+                    
+            
