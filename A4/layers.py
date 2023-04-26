@@ -1,10 +1,17 @@
 import numpy as np
+from optim import AdamOptimizer
 
 class Linear:
-    def __init__(self, in_features, out_features):
+    
+    def __init__(self, in_features, out_features, learning_rate):
+       
         self.in_features, self.out_features = in_features, out_features
         self.W = np.random.uniform(low=-0.1, high=+0.1, size=(in_features, out_features))
         self.b = np.zeros(shape=(out_features,))
+        self.learning_rate = learning_rate
+        self.W_optimizer = AdamOptimizer(shape=self.W.shape, alpha=learning_rate)
+        self.b_optimizer = AdamOptimizer(shape=self.b.shape, alpha=learning_rate)
+        
     def forward(self, X):
         ### X is M * D_in
         ## X.W + b ===> X (M * D_IN ) . W (D_IN * D_OUT) + b (D_out)
@@ -19,9 +26,10 @@ class Linear:
         delX = np.matmul(delY, self.W.T)
         return delX
     
-    def update(self, lr):
-        self.W -= lr * self.W_grad
-        self.b -= lr * self.b_grad
+    def update(self):
+        
+        self.W = self.W_optimizer.update(self.W, self.W_grad)
+        self.b = self.b_optimizer.update(self.b, self.b_grad)
     
 class ReLU:
     def __init_(self):
@@ -110,13 +118,16 @@ class MaxPool2D():
     
 class Conv2D():
     
-    def __init__(self, kernel_size, stride, in_channels, num_filters):
+    def __init__(self, kernel_size, stride, in_channels, num_filters, learning_rate):
         self.kernel_size = kernel_size
         self.stride = stride
         self.in_channels = in_channels
         self.num_filters = num_filters
         self.W = np.random.uniform(low=-0.1, high=+0.1, size=(num_filters, in_channels, kernel_size, kernel_size)) ### C_out * C_in * K * K
         self.b = np.zeros(shape=(num_filters,)) ## C_out, ||| one bias per output filter
+        self.learning_rate = learning_rate
+        self.W_optimizer = AdamOptimizer(shape=self.W.shape, alpha=learning_rate)
+        self.b_optimizer = AdamOptimizer(shape=self.b.shape, alpha=learning_rate) 
 
 
     def forward(self, X):
@@ -160,8 +171,8 @@ class Conv2D():
     
         return output
     
-    def update(self, lr):
-        self.W -= lr * self.W_grad
-        self.b -= lr * self.b_grad
+    def update(self):
+        self.W = self.W_optimizer.update(self.W, self.W_grad)
+        self.b = self.b_optimizer.update(self.b, self.b_grad)
                     
             

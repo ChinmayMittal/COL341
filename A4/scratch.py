@@ -12,8 +12,8 @@ NUM_EPOCHS = 100
 PRINT_INTERVAL = 2000
 SMOOTHING_FACTOR = 0.9
 
-dataset = Dataset("./data/cifar-10-batches-py", batch_size=BATCH_SIZE, sample_interval=1)
-model = CNN(NUM_CLASSES=NUM_CLASSES)
+dataset = Dataset("./data/cifar-10-batches-py", batch_size=BATCH_SIZE, sample_interval=100)
+model = CNN(NUM_CLASSES=NUM_CLASSES, learning_rate=LEARNING_RATE)
 
 for epoch in range(NUM_EPOCHS):
     ## TRAINING
@@ -27,7 +27,7 @@ for epoch in range(NUM_EPOCHS):
         del_prob = -1 * one_hot / prob
         del_prob /= batch_size
         model.backward(del_prob)
-        model.update_weights(lr=LEARNING_RATE)
+        model.update_weights()
 
     ## TRAINING ACC
     print("FINDING TRAINING ACC ... ")
