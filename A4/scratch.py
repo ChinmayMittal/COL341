@@ -5,14 +5,14 @@ from cnn import CNN
 from tqdm import tqdm
 
 ### PARAMS
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 NUM_CLASSES = 10
 LEARNING_RATE = 1e-2
 NUM_EPOCHS = 100
 PRINT_INTERVAL = 2000
 SMOOTHING_FACTOR = 0.9
 
-dataset = Dataset("./data/cifar-10-batches-py", sample_interval=100)
+dataset = Dataset("./data/cifar-10-batches-py", batch_size=BATCH_SIZE, sample_interval=1)
 model = CNN(NUM_CLASSES=NUM_CLASSES)
 
 for epoch in range(NUM_EPOCHS):
