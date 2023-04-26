@@ -12,7 +12,7 @@ NUM_EPOCHS = 100
 PRINT_INTERVAL = 2000
 SMOOTHING_FACTOR = 0.9
 
-dataset = Dataset("./data/cifar-10-batches-py", sample_interval=50)
+dataset = Dataset("./data/cifar-10-batches-py", sample_interval=100)
 model = CNN(NUM_CLASSES=NUM_CLASSES)
 
 for epoch in range(NUM_EPOCHS):

@@ -80,14 +80,13 @@ class MaxPool2D():
         C_out, H_out, W_out = C_in, (H_in-self.kernel_size)//self.stride + 1, (W_in-self.kernel_size)//self.stride+1
         output = np.zeros((N, C_out, H_out, W_out))
         ### iterating over the output axises
-        for channel in range(C_out):
-            for h in range(H_out):
-                for w in range(W_out):
-                    ### input to consider
-                    h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
-                    w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
-                    input_slice = X[:, channel, h_start:h_end, w_start:w_end] ## B * kernel_size * kernel_size
-                    output[:, channel, h, w] = np.max(input_slice.reshape(N, -1), axis=1)
+        for h in range(H_out):
+            for w in range(W_out):
+                ### input to consider
+                h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
+                w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
+                input_slice = X[:, :, h_start:h_end, w_start:w_end] ## B * C_in * kernel_size * kernel_size
+                output[:, :, h, w] = np.max(input_slice.reshape(N, C_in, -1), axis=2)
                     
         return output
     
@@ -119,7 +118,8 @@ class Conv2D():
         self.num_filters = num_filters
         self.W = np.random.uniform(low=-0.1, high=+0.1, size=(num_filters, in_channels, kernel_size, kernel_size)) ### C_out * C_in * K * K
         self.b = np.zeros(shape=(num_filters,)) ## C_out, ||| one bias per output filter
-    
+
+
     def forward(self, X):
         ### X => N * C * H * W
         self.cache = X
@@ -127,15 +127,14 @@ class Conv2D():
         C_out, H_out, W_out = self.num_filters, (H_in-self.kernel_size)//self.stride + 1, (W_in-self.kernel_size)//self.stride+1
         output = np.zeros(shape=(N, C_out, H_out, W_out))
         ### iterating over the output
-        for c in range(C_out):
-            for h in range(H_out):
-                for w in range(W_out):
-                    ### input to consider
-                    h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
-                    w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
-                    input_slice = X[:, :, h_start:h_end, w_start:w_end] ## B * C_in * K * K
-                                        ### C_in * K * K              B * C_in * K * K
-                    output[:, c, h, w] = np.sum( (self.W[c, :, :, :] * input_slice).reshape(N, -1), axis=1) + self.b[c] ## B,
+        for h in range(H_out):
+            for w in range(W_out):
+                ### input to consider
+                h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
+                w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
+                input_slice = X[:, :, h_start:h_end, w_start:w_end] ## B * C_in * K * K
+                                    ### C_out * C_in * K * K              B * 1 * C_in * K * K => B * C_out * C_in * K * K 
+                output[:, :, h, w] = np.sum( (self.W[:, :, :, :] * np.expand_dims(input_slice, axis=1)).reshape(N, C_out, -1), axis=2) + self.b ## B, C_out
                     
         return output
     
@@ -145,8 +144,10 @@ class Conv2D():
         (N, C_out, H_out, W_out) = delY.shape
         output = np.zeros(self.cache.shape) ### delX
                         ### shift the C_out to the zeroth axis 
-        self.W_grad = np.zeros(shape=self.W.shape) ### C_out * C_in * K * K
+        
         self.b_grad = np.sum(np.moveaxis(delY, source=1, destination=0).reshape(C_out, -1), axis=1) ### for each channel sum all the gradient values
+        
+        self.W_grad = np.zeros(shape=self.W.shape) ### C_out * C_in * K * K
         for c in range(C_out):
             for h in range(H_out):
                 for w in range(W_out):
@@ -157,7 +158,7 @@ class Conv2D():
                     ## C_in * K * K            B * C_in * K * K  ||| B, 
                     self.W_grad[c, :, :, :] += np.sum(input_slice * (delY[:, c, h, w].reshape(N, 1, 1, 1)), axis=0)
                     ## B * C_in * K * K                               1 * C_in * K * K  ||| B, 1, 1, 1
-                    output[:, :, h_start:h_end, w_start:w_end] = np.expand_dims(self.W[c, :, :, :], axis=0) * delY[:, c, h, w].reshape(N, 1, 1, 1)
+                    output[:, :, h_start:h_end, w_start:w_end] += np.expand_dims(self.W[c, :, :, :], axis=0) * delY[:, c, h, w].reshape(N, 1, 1, 1)
         
         return output
     
