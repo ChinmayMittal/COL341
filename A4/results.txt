@@ -1,0 +1,227 @@
+-- lr 0.001
+CLASS WISE ACCURACY FOR TRAIN
+plane 82.14%
+car 87.92%
+bird 71.26%
+cat 74.60%
+deer 75.06%
+dog 69.04%
+frog 81.90%
+horse 84.82%
+ship 94.16%
+truck 89.22%
+CLASS WISE ACCURACY FOR TEST
+plane 72.60%
+car 80.70%
+bird 55.40%
+cat 62.70%
+deer 60.40%
+dog 60.10%
+frog 76.80%
+horse 74.50%
+ship 86.30%
+truck 82.20%
+
+--lr 1e-6
+CLASS WISE ACCURACY FOR TRAIN
+plane 43.58%
+car 31.26%
+bird 0.64%
+cat 8.08%
+deer 2.02%
+dog 21.94%
+frog 56.70%
+horse 44.36%
+ship 40.56%
+truck 41.30%
+CLASS WISE ACCURACY FOR TEST
+plane 43.10%
+car 31.60%
+bird 0.30%
+cat 7.30%
+deer 2.10%
+dog 22.00%
+frog 58.30%
+horse 43.50%
+ship 40.60%
+truck 42.90%
+
+
+--lr 5e-3
+
+CLASS WISE ACCURACY FOR TRAIN
+plane 70.78%
+car 75.98%
+bird 32.82%
+cat 51.80%
+deer 49.50%
+dog 35.96%
+frog 68.86%
+horse 62.50%
+ship 84.26%
+truck 70.94%
+CLASS WISE ACCURACY FOR TEST
+plane 68.00%
+car 70.50%
+bird 28.60%
+cat 47.70%
+deer 45.80%
+dog 34.10%
+frog 68.40%
+horse 57.40%
+ship 81.40%
+truck 68.20%
+
+-- DATA AUGMENTATION ON
+CLASS WISE ACCURACY FOR TRAIN
+plane 64.02%
+car 74.76%
+bird 53.78%
+cat 52.86%
+deer 55.56%
+dog 53.92%
+frog 71.72%
+horse 63.46%
+ship 79.56%
+truck 58.24%
+CLASS WISE ACCURACY FOR TEST
+plane 60.90%
+car 72.10%
+bird 53.50%
+cat 50.40%
+deer 52.60%
+dog 54.20%
+frog 72.90%
+horse 62.70%
+ship 76.40%
+truck 57.20%
+
+
+-- scratch implementation 
+BATCH_SIZE = 32
+NUM_CLASSES = 10
+LEARNING_RATE = 1e-3
+NUM_EPOCHS = 20
+PRINT_INTERVAL = 2000
+SMOOTHING_FACTOR = 0.9
+-- subsample 25
+TRAINING SET
+plane 91.41 %
+car 99.53 %
+bird 100.00 %
+cat 93.10 %
+deer 80.82 %
+dog 66.49 %
+frog 96.74 %
+horse 75.66 %
+ship 93.85 %
+truck 90.53 %
+TESTING SET
+plane 45.71 %
+car 63.64 %
+bird 50.00 %
+cat 32.76 %
+deer 20.00 %
+dog 20.00 %
+frog 63.41 %
+horse 33.33 %
+ship 47.73 %
+truck 37.21 %
+
+
+--- without LR
+CLASS WISE ACCURACY FOR TRAIN
+plane 46.24%
+car 61.20%
+bird 38.50%
+cat 22.42%
+deer 24.98%
+dog 47.56%
+frog 60.80%
+horse 50.08%
+ship 57.76%
+truck 47.88%
+CLASS WISE ACCURACY FOR TEST
+plane 46.70%
+car 59.90%
+bird 36.00%
+cat 20.80%
+deer 23.30%
+dog 46.90%
+frog 62.90%
+horse 53.50%
+ship 57.50%
+truck 47.00%
+
+-- with LR
+CLASS WISE ACCURACY FOR TRAIN
+plane 68.44%
+car 84.20%
+bird 48.94%
+cat 41.44%
+deer 51.42%
+dog 53.06%
+frog 76.28%
+horse 66.72%
+ship 81.84%
+truck 74.98%
+CLASS WISE ACCURACY FOR TEST
+plane 63.50%
+car 79.40%
+bird 42.80%
+cat 39.40%
+deer 43.70%
+dog 51.10%
+frog 72.70%
+horse 65.00%
+ship 76.30%
+truck 70.70%
+
+
+--- subsample 1/10th
+TRAIN 
+plane 87.18 %
+car 89.41 %
+bird 60.79 %
+cat 51.95 %
+deer 83.04 %
+dog 90.75 %
+frog 77.30 %
+horse 53.16 %
+ship 83.44 %
+truck 78.86 %
+TEST
+plane 67.82 %
+car 60.00 %
+bird 40.74 %
+cat 27.10 %
+deer 50.53 %
+dog 62.11 %
+frog 52.00 %
+horse 31.37 %
+ship 60.78 %
+truck 49.04 %
+
+--KL Loss
+CLASS WISE ACCURACY FOR TRAIN
+plane 85.22%
+car 87.58%
+bird 69.50%
+cat 61.34%
+deer 79.30%
+dog 66.34%
+frog 79.14%
+horse 85.14%
+ship 84.86%
+truck 89.68%
+CLASS WISE ACCURACY FOR TEST
+plane 77.90%
+car 78.80%
+bird 59.50%
+cat 50.80%
+deer 73.40%
+dog 60.70%
+frog 75.60%
+horse 76.90%
+ship 77.30%
+truck 81.00%

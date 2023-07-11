@@ -1,5 +1,6 @@
 import numpy as np
 from optim import AdamOptimizer
+from joblib import Parallel, delayed
 
 class Linear:
     
@@ -81,13 +82,22 @@ class MaxPool2D():
         self.kernel_size = kernel_size
         self.stride = stride
         
+    def forward_helper(self, h, w, X):
+        (N, C_in, H_in, W_in) = X.shape
+        h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
+        w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
+        input_slice = X[:, :, h_start:h_end, w_start:w_end]
+        return np.expand_dims(np.max(input_slice.reshape(N, C_in, -1), axis=2), axis=2)
+        
     def forward(self, X):
         ## X ==> N * C * H * W
         (N, C_in, H_in, W_in) = X.shape
         self.cache = X
         C_out, H_out, W_out = C_in, (H_in-self.kernel_size)//self.stride + 1, (W_in-self.kernel_size)//self.stride+1
-        output = np.zeros((N, C_out, H_out, W_out))
-        ### iterating over the output axises
+        # output = Parallel(n_jobs=2)(delayed(self.forward_helper)(h, w, X) for h in range(H_out) for w in range(W_out))
+        # output = np.reshape(np.concatenate(output, axis=2), newshape=(N, C_in, H_out, W_out))
+        output = np.zeros((N, C_out, H_out, H_out))
+        ## iterating over the output axises
         for h in range(H_out):
             for w in range(W_out):
                 ### input to consider
@@ -115,7 +125,8 @@ class MaxPool2D():
                 max_mask = ( input_slice == max_value.reshape((-1, C_out, 1, 1)))  ### B * C *  K * K ### mask indicating presence of max value
                 output[:, :, h_start:h_end, w_start:w_end] = max_mask.astype(np.int32) * delY[:, :, h, w].reshape((-1, C_out, 1, 1))  ### B * C *  K * K
         return output
-    
+   
+
 class Conv2D():
     
     def __init__(self, kernel_size, stride, in_channels, num_filters, learning_rate):
@@ -129,22 +140,25 @@ class Conv2D():
         self.W_optimizer = AdamOptimizer(shape=self.W.shape, alpha=learning_rate)
         self.b_optimizer = AdamOptimizer(shape=self.b.shape, alpha=learning_rate) 
 
-
+    def conv_forward_helper(self, h, w, X, W):
+        N = X.shape[0]
+        C_out = W.shape[0]
+        h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
+        w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
+        input_slice = X[:, :, h_start:h_end, w_start:w_end]
+        return np.expand_dims(np.sum((W* np.expand_dims(input_slice, axis=1)).reshape(N, C_out, -1), axis=2), axis=2)
+    
     def forward(self, X):
         ### X => N * C * H * W
         self.cache = X
         (N, C_in, H_in, W_in) = X.shape
         C_out, H_out, W_out = self.num_filters, (H_in-self.kernel_size)//self.stride + 1, (W_in-self.kernel_size)//self.stride+1
         output = np.zeros(shape=(N, C_out, H_out, W_out))
+        output += self.b.reshape(1, C_out, 1, 1)
         ### iterating over the output
-        for h in range(H_out):
-            for w in range(W_out):
-                ### input to consider
-                h_start, h_end = h * self.stride, h * self.stride + self.kernel_size
-                w_start, w_end = w * self.stride, w * self.stride + self.kernel_size
-                input_slice = X[:, :, h_start:h_end, w_start:w_end] ## B * C_in * K * K
-                                    ### C_out * C_in * K * K              B * 1 * C_in * K * K => B * C_out * C_in * K * K 
-                output[:, :, h, w] = np.sum( (self.W[:, :, :, :] * np.expand_dims(input_slice, axis=1)).reshape(N, C_out, -1), axis=2) + self.b ## B, C_out
+        ### each outut elememnt is compute in parallel
+        results = Parallel(n_jobs=4)(delayed(self.conv_forward_helper)(h, w, X, self.W) for h in range(H_out) for w in range(W_out))
+        output += np.reshape(np.concatenate(results, axis=2), newshape=output.shape)
                     
         return output
     

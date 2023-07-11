@@ -1,8 +1,9 @@
 import numpy as np
-from layers import MaxPool2D, Conv2D
+from numpy.lib.stride_tricks import sliding_window_view
 
 
-layer = Conv2D(kernel_size=3, stride=1, in_channels=3, num_filters=32)
-input = np.random.randint(low=0, high=10, size = (16,3,32,32))
-output = layer.forward(input)
-print(output.shape)
+x = np.zeros((50,3,38,32)) ## B * C_in * H * W 
+print(x.shape)
+window_view = sliding_window_view(x, window_shape=(3,5,5), axis=(1,2,3))
+print(window_view.shape)
+
